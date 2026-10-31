@@ -1,17 +1,24 @@
 import { useRef } from 'react'
 import GhostSprite from './GhostSprite'
+import MischiefGauge from './MischiefGauge'
 import { useFollow } from './useFollow'
+import { useGhostState } from './useGhostState'
 
 function Overlay(): React.JSX.Element {
   const ghostRef = useRef<HTMLDivElement>(null)
   useFollow(ghostRef)
+  const { mischief, gauge, statusText, decision } = useGhostState()
+  const booing = mischief === 'ACTING' && decision?.action.type === 'BOO'
 
   return (
-    <div ref={ghostRef} className="ghost" data-facing="right">
+    <div ref={ghostRef} className="ghost" data-facing="right" data-mischief={mischief}>
       <div className="shadow" />
       <div className="ghost-bob">
-        <span className="status">Following cursor</span>
-        <GhostSprite frame="idle" />
+        <div className="hud">
+          <span className="status">{statusText}</span>
+          <MischiefGauge gauge={gauge} />
+        </div>
+        <GhostSprite frame={booing ? 'boo' : 'idle'} />
       </div>
     </div>
   )

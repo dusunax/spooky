@@ -67,7 +67,7 @@ Spooky는 데스크톱 위를 떠다니는 픽셀 아트 유령 펫이다. 마�
 | 35~45s | 버튼 3초 후 복구, 쿨다운 5초              | `Cooldown`                                   |
 | 45s~   | 다시 추적                                 | `Following cursor`                           |
 
-> 데모 촬영 시에는 `GHOST_CHARGE_SECONDS=8` 같은 환경변수로 충전 시간을 줄여 한 영상에 BOO·EXPLODE를 모두 담는다.
+> 데모 촬영 시에는 `SPOOKY_CHARGE_SECONDS=8` 같은 환경변수로 충전 시간을 줄여 한 영상에 BOO·EXPLODE를 모두 담는다.
 
 ---
 
@@ -168,7 +168,7 @@ TARGET 안에서 아래 순서로 먼저 버린다. **MIN은 버리지 않는다
 | 항목                | 기본값                                     |
 | ------------------- | ------------------------------------------ |
 | 범위                | 0~100                                      |
-| 충전                | 20초에 100 (`GHOST_CHARGE_SECONDS`로 조정) |
+| 충전                | 20초에 100 (`SPOOKY_CHARGE_SECONDS`로 조정) |
 | 100 도달            | 충전 정지 → THINKING, AI 요청 1회          |
 | 행동 완료           | 0으로 초기화 → COOLDOWN 5초 (충전 정지)    |
 | PAUSED / AI_OFFLINE | 충전 정지 (AI_OFFLINE은 100에서 대기)      |
@@ -219,7 +219,7 @@ type DecisionRecord = {
 | 항목        | 값                                                                                         |
 | ----------- | ------------------------------------------------------------------------------------------ |
 | Endpoint    | `http://127.0.0.1:11434/api/chat`, `stream:false`                                          |
-| Model       | Qwen 계열 1~2B 오픈 웨이트 (OQ-4, 태그는 실측 후 확정). 환경변수 `GHOST_MODEL`로 교체 가능 |
+| Model       | Qwen 계열 1~2B 오픈 웨이트 (OQ-4, 태그는 실측 후 확정). 환경변수 `SPOOKY_MODEL`로 교체 가능 |
 | temperature | 0.8                                                                                        |
 | think       | false                                                                                      |
 | Timeout     | 10초 (넘으면 THINKING 유지하다 실패 처리)                                                  |
@@ -455,7 +455,7 @@ interface DecisionEngine {
 
 - 검증·폴백·`source` 기록은 `decide.ts` 한 곳에만 둔다. 엔진이 바뀌어도 안전 보장은 그대로다.
 - `DecisionRecord`에 `engine: string` 필드를 추가해 디버그 패널·로그에서 어떤 엔진이 골랐는지 보인다.
-- 엔진은 `GHOST_ENGINE` 환경변수(기본 `ollama`)로 선택한다. 유료(`kind:'hosted'`) 엔진은 MVP에서 구현하지 않으며, 추가할 때도 기본값이 될 수 없고 명시적 opt-in + 비용 상한을 둔다.
+- 엔진은 `SPOOKY_ENGINE` 환경변수(기본 `ollama`)로 선택한다. 유료(`kind:'hosted'`) 엔진은 MVP에서 구현하지 않으며, 추가할 때도 기본값이 될 수 없고 명시적 opt-in + 비용 상한을 둔다.
 
 ---
 

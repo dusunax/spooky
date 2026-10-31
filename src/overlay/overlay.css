@@ -57,11 +57,18 @@ body,
   transform: scaleX(-1);
 }
 
-.status {
+.hud {
   position: absolute;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + 4px);
   left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
   transform: translateX(-50%);
+}
+
+.status {
   white-space: nowrap;
   font:
     10px/1 ui-monospace,
@@ -75,8 +82,80 @@ body,
     0 -1px #000;
 }
 
+.gauge {
+  box-sizing: border-box;
+  width: 48px;
+  height: 6px;
+  border: 1px solid #1f1f26;
+  border-radius: 1px;
+  background: #2a2a33;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  height: 100%;
+  background: var(--gauge-color);
+  transition: width 0.1s linear;
+}
+
+.gauge[data-level='blue'] {
+  --gauge-color: #7cc4ff;
+}
+.gauge[data-level='green'] {
+  --gauge-color: #6fdc8c;
+}
+.gauge[data-level='yellow'] {
+  --gauge-color: #ffd84d;
+}
+.gauge[data-level='orange'] {
+  --gauge-color: #ffa94d;
+}
+.gauge[data-level='red'] {
+  --gauge-color: #ff6f91;
+}
+
+.gauge[data-full] {
+  animation: gauge-flash 0.4s steps(2) infinite;
+}
+
+@keyframes gauge-flash {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.ghost[data-mischief='PAUSED'] {
+  opacity: 0.5;
+}
+
+/* BOO — 몸통 팽창 */
+.ghost[data-mischief='ACTING'] .sprite {
+  animation: puff 0.3s steps(3) infinite alternate;
+}
+
+.ghost[data-mischief='ACTING'][data-facing='left'] .sprite {
+  animation-name: puff-left;
+}
+
+@keyframes puff {
+  to {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes puff-left {
+  from {
+    transform: scaleX(-1);
+  }
+  to {
+    transform: scale(-1.15, 1.15);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ghost-bob {
+  .ghost-bob,
+  .gauge[data-full],
+  .ghost[data-mischief='ACTING'] .sprite {
     animation: none;
   }
 }
