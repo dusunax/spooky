@@ -1,5 +1,7 @@
 // IPC 계약 — docs/PRD.md §7.3. preload는 여기 있는 채널만 통과시킨다.
 
+import type { BooPatternId } from './boo-patterns'
+
 // x·y는 오버레이(현재 디스플레이) 로컬 좌표, origin은 그 디스플레이의 전역 원점
 export type CursorUpdate = { x: number; y: number; speed: number; origin: { x: number; y: number } }
 
@@ -17,11 +19,20 @@ export type GhostState = {
   gauge: number // 0~100 정수
   statusText: string
   decision: Decision | null // ACTING 중일 때만
+  actionId: number // 행동마다 1씩 증가 — 같은 행동을 두 번 실행하지 않게
+}
+
+// 사용자 설정 — main이 저장하고 오버레이에 알린다
+export type GhostSettings = {
+  muted: boolean
+  booPatterns: BooPatternId[] // 이 중에서 랜덤, 최소 1개
 }
 
 export type MainToRenderer = {
   'cursor:update': CursorUpdate
   'ghost:state': GhostState
+  'ghost:settings': GhostSettings
+  'ghost:preview-boo': { pattern: BooPatternId }
 }
 
 export type RendererToMain = {
@@ -32,7 +43,9 @@ export type RendererToMain = {
 
 export const MAIN_TO_RENDERER = [
   'cursor:update',
-  'ghost:state'
+  'ghost:state',
+  'ghost:settings',
+  'ghost:preview-boo'
 ] as const satisfies readonly (keyof MainToRenderer)[]
 export const RENDERER_TO_MAIN = [
   'ghost:arrived',

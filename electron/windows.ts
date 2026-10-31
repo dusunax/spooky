@@ -38,7 +38,12 @@ export function createOverlayWindow(): BrowserWindow {
     show: false,
     backgroundColor: '#00000000',
     // 포커스 없는 창이라도 추적 rAF가 멈추지 않게
-    webPreferences: { ...secureWebPreferences, backgroundThrottling: false }
+    // 사용자 클릭 없이 BOO를 낼 수 있게 자동 재생 허용
+    webPreferences: {
+      ...secureWebPreferences,
+      backgroundThrottling: false,
+      autoplayPolicy: 'no-user-gesture-required'
+    }
   })
   win.setAlwaysOnTop(true, 'screen-saver')
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })

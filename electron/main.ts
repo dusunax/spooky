@@ -7,12 +7,16 @@ import { createMischief, DEFAULT_MISCHIEF_CONFIG, type Mischief } from './mischi
 import { createDecider } from './ai/decide'
 import { buildContext } from './ai/context'
 import { createOllamaEngine } from './ai/engines/ollama'
+import { loadSettings, saveSettings } from './settings'
+import type { BooPatternId } from '../src/shared/boo-patterns'
+import type { GhostSettings } from '../src/shared/ipc'
 
 let overlay: BrowserWindow | null = null
 let demo: BrowserWindow | null = null
 let tray: Tray | null = null
 let cursor: CursorPolling | null = null
 let ghostPosition: { x: number; y: number } | null = null
+let settings: GhostSettings
 let mischief: Mischief | null = null
 
 function showDemo(): void {
@@ -37,8 +41,18 @@ app.whenReady().then(() => {
 
   app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
+  settings = loadSettings()
   overlay = createOverlayWindow()
   cursor = startCursorPolling(overlay)
+  const sendToOverlay: BrowserWindow['webContents']['send'] = (channel, ...args) => {
+    if (overlay && !overlay.isDestroyed()) overlay.webContents.send(channel, ...args)
+  }
+  const updateSettings = (next: GhostSettings): void => {
+    settings = next
+    saveSettings(settings)
+    sendToOverlay('ghost:settings', settings)
+  }
+  overlay.webContents.on('did-finish-load', () => sendToOverlay('ghost:settings', settings))
   ipcMain.on(
     'ghost:position',
     (_, position: { x: number; y: number }) => (ghostPosition = position)
@@ -60,9 +74,7 @@ app.whenReady().then(() => {
 
   mischief = createMischief({
     decide,
-    onState: (state) => {
-      if (overlay && !overlay.isDestroyed()) overlay.webContents.send('ghost:state', state)
-    },
+    onState: (state) => sendToOverlay('ghost:state', state),
     onAction: () => {}, // BOO·EXPLODE 실행은 5·6단계에서 연결
     config: { chargeMs: chargeMsFromEnv() }
   })
@@ -80,7 +92,21 @@ app.whenReady().then(() => {
       if (mischief.isPaused()) mischief.resume()
       else mischief.pause()
     },
-    isPaused: () => mischief?.isPaused() ?? false
+    isPaused: () => mischief?.isPaused() ?? false,
+    getSettings: () => settings,
+    toggleMute: () => updateSettings({ ...settings, muted: !settings.muted }),
+    toggleBooPattern: (id: BooPatternId) => {
+      const enabled = settings.booPatterns.includes(id)
+      // 최소 하나는 남긴다
+      if (enabled && settings.booPatterns.length === 1) return
+      updateSettings({
+        ...settings,
+        booPatterns: enabled
+          ? settings.booPatterns.filter((p) => p !== id)
+          : [...settings.booPatterns, id]
+      })
+      if (!enabled) sendToOverlay('ghost:preview-boo', { pattern: id })
+    }
   })
 })
 

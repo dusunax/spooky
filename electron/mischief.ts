@@ -70,6 +70,7 @@ export function createMischief({ decide, onState, onAction, config }: Deps): Mis
   let state: MischiefState = 'CHARGING'
   let gauge = 0
   let decision: Decision | null = null
+  let actionId = 0
   let offlineReason: 'offline' | 'model_missing' = 'offline'
   let pausedFrom: MischiefState | null = null
   let phaseTimer: ReturnType<typeof setTimeout> | null = null
@@ -82,7 +83,8 @@ export function createMischief({ decide, onState, onAction, config }: Deps): Mis
       mischief: state,
       gauge: Math.floor(gauge),
       statusText: describe(state, Math.floor(gauge), decision, offlineReason),
-      decision: state === 'ACTING' ? decision : null
+      decision: state === 'ACTING' ? decision : null,
+      actionId
     }
     const key = JSON.stringify(next)
     if (key === lastEmitted) return
@@ -124,6 +126,7 @@ export function createMischief({ decide, onState, onAction, config }: Deps): Mis
 
   const act = (next: Decision): void => {
     decision = next
+    actionId++
     enter('ACTING')
     onAction(next)
     phaseTimer = setTimeout(finishAction, cfg.actionTimeoutMs)

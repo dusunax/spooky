@@ -5,7 +5,8 @@ const INITIAL: GhostState = {
   mischief: 'CHARGING',
   gauge: 0,
   statusText: 'Following cursor',
-  decision: null
+  decision: null,
+  actionId: 0
 }
 
 // main의 Mischief 상태를 구독한다. main은 값이 바뀔 때만 보낸다.

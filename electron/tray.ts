@@ -1,29 +1,57 @@
-import { Menu, Tray, app, nativeImage } from 'electron'
-import icon from '../resources/icon.png?asset'
+import { Menu, Tray, app, nativeImage, type MenuItemConstructorOptions } from 'electron'
+// resources/ 안의 파일은 경로만 참조된다 — 옆의 trayTemplate@2x.png도 macOS가 함께 고른다
+import trayIcon from '../resources/trayTemplate.png?asset'
+import { BOO_PATTERNS, type BooPatternId } from '../src/shared/boo-patterns'
+import type { GhostSettings } from '../src/shared/ipc'
 
 type TrayActions = {
   showDemo: () => void
   togglePause: () => void
   isPaused: () => boolean
+  getSettings: () => GhostSettings
+  toggleMute: () => void
+  toggleBooPattern: (id: BooPatternId) => void
 }
 
-// MIN: Pause/Resume · Show Demo Window · Quit. Mute는 BOO 사운드와 함께 추가 (PRD §4 FR-08)
-export function createTray({ showDemo, togglePause, isPaused }: TrayActions): Tray {
-  const image = nativeImage.createFromPath(icon).resize({ width: 18, height: 18 })
+// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · BOO Sounds · Show Demo · Quit
+export function createTray(actions: TrayActions): Tray {
+  // 'Template' 이미지 — 메뉴바 밝기·다크 모드에 맞춰 macOS가 색을 바꾼다 (scripts/make-icons.py)
+  const image = nativeImage.createFromPath(trayIcon)
+  image.setTemplateImage(true)
   const tray = new Tray(image)
   tray.setToolTip('Spooky')
 
+  // 메뉴 항목을 누를 때마다 다시 그려 체크 상태·라벨을 최신으로 맞춘다
+  const withRender = (fn: () => void) => () => {
+    fn()
+    render()
+  }
+
   const render = (): void => {
+    const { muted, booPatterns } = actions.getSettings()
+    const booSounds: MenuItemConstructorOptions[] = BOO_PATTERNS.map((pattern) => ({
+      label: pattern.label,
+      type: 'checkbox',
+      checked: booPatterns.includes(pattern.id),
+      // 마지막 하나는 끌 수 없다
+      enabled: !(booPatterns.length === 1 && booPatterns[0] === pattern.id),
+      click: withRender(() => actions.toggleBooPattern(pattern.id))
+    }))
+
     tray.setContextMenu(
       Menu.buildFromTemplate([
+        { label: actions.isPaused() ? 'Resume' : 'Pause', click: withRender(actions.togglePause) },
+        { label: muted ? 'Unmute' : 'Mute', click: withRender(actions.toggleMute) },
         {
-          label: isPaused() ? 'Resume' : 'Pause',
-          click: () => {
-            togglePause()
-            render()
-          }
+          label: 'BOO Sounds',
+          submenu: [
+            { label: 'Random among checked · checking one plays it', enabled: false },
+            { type: 'separator' },
+            ...booSounds
+          ]
         },
-        { label: 'Show Demo Window', click: showDemo },
+        { type: 'separator' },
+        { label: 'Show Demo Window', click: actions.showDemo },
         { type: 'separator' },
         { label: 'Quit Spooky', accelerator: 'Command+Q', click: () => app.quit() }
       ])

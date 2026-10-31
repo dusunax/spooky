@@ -86,7 +86,7 @@ Spooky는 데스크톱 위를 떠다니는 픽셀 아트 유령 펫이다. 마�
 | FR-05  | EXPLODE    | 데모 창 버튼 3개 중 1개: 유령 접근 → 흔들림·색 변경·파티클(데모 창 내부 CSS) → disabled → 3초 후 복구                           |
 | FR-06  | BOO        | Web Audio로 합성한 "우우우~" (오디오 파일·라이선스 문제 없음) + 입 벌린 얼굴 + 몸통 팽창                                        |
 | FR-07  | 상태 표시  | 머리 위 한 줄 텍스트 (`Following cursor` / `Mischief n%` / `Thinking...` / `Action: …` / `AI offline`)                          |
-| FR-08  | 제어       | 트레이 메뉴: Pause/Resume, Mute/Unmute, Quit. Dock 아이콘 숨김                                                                  |
+| FR-08  | 제어       | 트레이 메뉴: Pause/Resume, Mute/Unmute, BOO Sounds, Quit. Dock 아이콘 숨김. Mute·BOO Sounds는 `userData/settings.json`에 저장   |
 | 비주얼 | 스프라이트 | 코드 픽셀 매트릭스(16×16 → 4배 확대 64px) 2종: 기본 웃는 얼굴, BOO 얼굴. 레퍼런스 시트 형태 기준. `image-rendering: pixelated`  |
 | 제출   | 문서       | README(설치·Ollama 모델 pull·실행), MIT LICENSE, 데모 GIF                                                                       |
 
@@ -282,12 +282,13 @@ Context:
 
 ### FR-08. 제어 (P0)
 
-| 메뉴             | 동작                                                       |
-| ---------------- | ---------------------------------------------------------- |
-| Pause / Resume   | 추적·충전·AI 호출 모두 정지, 유령은 제자리에서 반투명(50%) |
-| Mute / Unmute    | BOO 소리만 끔                                              |
-| Show Demo Window | 데모 창 열기/앞으로                                        |
-| Quit             | 진행 중 fetch abort, 타이머·IPC 정리 후 종료               |
+| 메뉴             | 동작                                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Pause / Resume   | 추적·충전·AI 호출 모두 정지, 유령은 제자리에서 반투명(50%)                                                               |
+| Mute / Unmute    | BOO 소리만 끔                                                                                                            |
+| BOO Sounds       | BOO 패턴 5종(wail·question·stutter·moan·warble) 체크박스. 켠 패턴 중 랜덤(직전 패턴 제외), 켤 때 미리듣기, 최소 1개 유지 |
+| Show Demo Window | 데모 창 열기/앞으로                                                                                                      |
+| Quit             | 진행 중 fetch abort, 타이머·IPC 정리 후 종료                                                                             |
 
 ---
 
