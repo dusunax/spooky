@@ -8,15 +8,21 @@ import { useBoo } from './useBoo'
 
 function Overlay(): React.JSX.Element {
   const ghostRef = useRef<HTMLDivElement>(null)
-  useFollow(ghostRef)
   const ghostState = useGhostState()
+  useFollow(ghostRef, ghostState.mischief === 'ACTING')
   const settings = useSettings()
   useBoo(ghostState, settings)
   const { mischief, gauge, statusText, decision } = ghostState
   const booing = mischief === 'ACTING' && decision?.action.type === 'BOO'
 
   return (
-    <div ref={ghostRef} className="ghost" data-facing="right" data-mischief={mischief}>
+    <div
+      ref={ghostRef}
+      className="ghost"
+      data-facing="right"
+      data-mischief={mischief}
+      data-action={mischief === 'ACTING' ? decision?.action.type : undefined}
+    >
       <div className="shadow" />
       <div className="ghost-bob">
         <div className="hud">

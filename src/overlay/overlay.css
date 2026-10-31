@@ -140,12 +140,26 @@ body,
 }
 
 /* BOO — 몸통 팽창 */
-.ghost[data-mischief='ACTING'] .sprite {
+.ghost[data-action='BOO'] .sprite {
   animation: puff 0.3s steps(3) infinite alternate;
 }
 
-.ghost[data-mischief='ACTING'][data-facing='left'] .sprite {
+.ghost[data-action='BOO'][data-facing='left'] .sprite {
   animation-name: puff-left;
+}
+
+/* EXPLODE — 신나서 통통 튄다 */
+.ghost[data-action='EXPLODE'] .ghost-bob {
+  animation: hop 0.35s steps(4) infinite alternate;
+}
+
+@keyframes hop {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes puff {
@@ -166,7 +180,8 @@ body,
 @media (prefers-reduced-motion: reduce) {
   .ghost-bob,
   .gauge[data-full],
-  .ghost[data-mischief='ACTING'] .sprite {
+  .ghost[data-action] .sprite,
+  .ghost[data-action] .ghost-bob {
     animation: none;
   }
 }

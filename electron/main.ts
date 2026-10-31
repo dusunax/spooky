@@ -8,8 +8,9 @@ import { createDecider } from './ai/decide'
 import { buildContext } from './ai/context'
 import { createOllamaEngine } from './ai/engines/ollama'
 import { loadSettings, saveSettings } from './settings'
+import { createDemoTargets } from './demo-targets'
 import type { BooPatternId } from '../src/shared/boo-patterns'
-import type { GhostSettings } from '../src/shared/ipc'
+import type { Decision, DemoTarget, GhostSettings } from '../src/shared/ipc'
 
 let overlay: BrowserWindow | null = null
 let demo: BrowserWindow | null = null
@@ -18,6 +19,10 @@ let cursor: CursorPolling | null = null
 let ghostPosition: { x: number; y: number } | null = null
 let settings: GhostSettings
 let mischief: Mischief | null = null
+const demoTargets = createDemoTargets(
+  () => overlay,
+  () => demo
+)
 
 function showDemo(): void {
   if (demo && !demo.isDestroyed()) {
@@ -53,6 +58,7 @@ app.whenReady().then(() => {
     sendToOverlay('ghost:settings', settings)
   }
   overlay.webContents.on('did-finish-load', () => sendToOverlay('ghost:settings', settings))
+  ipcMain.on('demo:targets', (_, targets: DemoTarget[]) => demoTargets.update(targets))
   ipcMain.on(
     'ghost:position',
     (_, position: { x: number; y: number }) => (ghostPosition = position)
@@ -67,7 +73,7 @@ app.whenReady().then(() => {
         cursor: cursor?.latest() ?? null,
         ghost: ghostPosition,
         last,
-        targets: [] // 6단계에서 데모 창이 보고한 버튼으로 채운다
+        targets: demoTargets.eligible()
       }),
     onRecord: (record) => console.info('[spooky] decision', JSON.stringify(record))
   })
@@ -75,7 +81,7 @@ app.whenReady().then(() => {
   mischief = createMischief({
     decide,
     onState: (state) => sendToOverlay('ghost:state', state),
-    onAction: () => {}, // BOO·EXPLODE 실행은 5·6단계에서 연결
+    onAction: (decision) => runAction(decision),
     config: { chargeMs: chargeMsFromEnv() }
   })
   engine.health().then((health) => {
@@ -83,6 +89,30 @@ app.whenReady().then(() => {
     if (health !== 'ok') mischief?.setOffline(health)
   })
   ipcMain.on('ghost:boo-ended', () => mischief?.finishAction())
+
+  // EXPLODE: 유령이 버튼으로 날아가고(최대 1.5초) → 데모 창이 폭파 → 연출이 끝나면 쿨다운
+  const APPROACH_LIMIT_MS = 1500
+  let pendingExplode: { id: string; timer: ReturnType<typeof setTimeout> } | null = null
+  const explodeNow = (): void => {
+    if (!pendingExplode) return
+    clearTimeout(pendingExplode.timer)
+    const { id } = pendingExplode
+    pendingExplode = null
+    if (demo && !demo.isDestroyed()) demo.webContents.send('demo:explode', { id })
+    else mischief?.finishAction()
+  }
+  const runAction = ({ action }: Decision): void => {
+    if (action.type !== 'EXPLODE') return // BOO는 오버레이가 재생하고 ghost:boo-ended로 알린다
+    const point = demoTargets.approachPoint(action.targetId)
+    if (!point) {
+      mischief?.finishAction() // 그 사이 데모 창이 닫히거나 옮겨졌다
+      return
+    }
+    sendToOverlay('ghost:approach', point)
+    pendingExplode = { id: action.targetId, timer: setTimeout(explodeNow, APPROACH_LIMIT_MS) }
+  }
+  ipcMain.on('ghost:arrived', explodeNow)
+  ipcMain.on('demo:exploded', () => mischief?.finishAction())
 
   showDemo()
   tray = createTray({

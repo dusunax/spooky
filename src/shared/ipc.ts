@@ -28,29 +28,45 @@ export type GhostSettings = {
   booPatterns: BooPatternId[] // 이 중에서 랜덤, 최소 1개
 }
 
+// 데모 창 버튼 — rect는 데모 창 콘텐츠 기준 CSS px
+export type DemoTarget = {
+  id: string
+  label: string
+  rect: { x: number; y: number; width: number; height: number }
+  disabled: boolean // 폭파 후 복구 중
+}
+
 export type MainToRenderer = {
   'cursor:update': CursorUpdate
   'ghost:state': GhostState
   'ghost:settings': GhostSettings
   'ghost:preview-boo': { pattern: BooPatternId }
+  'ghost:approach': { x: number; y: number } // 오버레이 로컬 좌표
+  'demo:explode': { id: string }
 }
 
 export type RendererToMain = {
   'ghost:arrived': Record<string, never>
   'ghost:boo-ended': Record<string, never>
   'ghost:position': { x: number; y: number } // 유령 중심, 오버레이 로컬 좌표
+  'demo:targets': DemoTarget[]
+  'demo:exploded': { id: string }
 }
 
 export const MAIN_TO_RENDERER = [
   'cursor:update',
   'ghost:state',
   'ghost:settings',
-  'ghost:preview-boo'
+  'ghost:preview-boo',
+  'ghost:approach',
+  'demo:explode'
 ] as const satisfies readonly (keyof MainToRenderer)[]
 export const RENDERER_TO_MAIN = [
   'ghost:arrived',
   'ghost:boo-ended',
-  'ghost:position'
+  'ghost:position',
+  'demo:targets',
+  'demo:exploded'
 ] as const satisfies readonly (keyof RendererToMain)[]
 
 export type GhostBridge = {

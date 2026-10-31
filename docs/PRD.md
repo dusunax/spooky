@@ -256,12 +256,14 @@ Context:
 
 **좌표 계약**
 
-1. demo renderer → main: `demo:targets` — `{ id, label, rect: DOMRect }[]` (창 로드·리사이즈·이동 시)
+1. demo renderer → main: `demo:targets` — `{ id, label, rect, disabled }[]` (창 로드·리사이즈·버튼 상태 변경 시. 창 이동은 main이 창 좌표로 매번 보정)
 2. main: `demoWin.getContentBounds()`로 화면 좌표 변환 → overlay 디스플레이 원점 기준 로컬 좌표로 변환
 3. main → overlay: `ghost:approach { x, y }`
 4. overlay 도착(목표 20px 이내 또는 1.5초 경과) → main → demo: `demo:explode { id }`
-5. demo: 흔들림 300ms → 색·스타일 변경 + 파티클 → `disabled` → 3초 후 원상 복구 → `demo:restored { id }`
-6. overlay: COOLDOWN 진입
+5. demo: 흔들림 300ms → 그을린 스타일 + 섬광·파편·연기 → `disabled` → 연출(0.7초) 끝에 `demo:exploded { id }`
+6. main: COOLDOWN 진입, 유령은 다시 커서 추적. 버튼은 데모 창이 3초 뒤 스스로 복구하고 `demo:targets`로 다시 알린다
+
+대상 목록은 호출마다 순서를 섞어 모델에 넘긴다 — 실측에서 qwen3:1.7b가 목록 맨 앞(`btn-save`)만 3/3 골랐다.
 
 예외
 
@@ -393,17 +395,20 @@ type MischiefState =
 
 ### 7.3 IPC 채널 (화이트리스트)
 
-| 채널              | 방향                  | 페이로드                                   |
-| ----------------- | --------------------- | ------------------------------------------ |
-| `cursor:update`   | main → overlay        | `{ x, y, speed }` (오버레이 로컬 좌표)     |
-| `ghost:state`     | main → overlay        | `{ mischief, gauge, statusText, action? }` |
-| `ghost:approach`  | main → overlay        | `{ x, y }`                                 |
-| `ghost:arrived`   | overlay → main        | `{}`                                       |
-| `ghost:boo-ended` | overlay → main        | `{}`                                       |
-| `demo:targets`    | demo → main           | `{ id, label, rect }[]`                    |
-| `demo:explode`    | main → demo           | `{ id }`                                   |
-| `demo:restored`   | demo → main           | `{ id }`                                   |
-| `debug:decision`  | main → debug (TARGET) | `DecisionRecord`                           |
+| 채널                | 방향                  | 페이로드                                              |
+| ------------------- | --------------------- | ----------------------------------------------------- |
+| `cursor:update`     | main → overlay        | `{ x, y, speed, origin }` (오버레이 로컬 좌표)        |
+| `ghost:state`       | main → overlay        | `{ mischief, gauge, statusText, decision, actionId }` |
+| `ghost:settings`    | main → overlay        | `{ muted, booPatterns }`                              |
+| `ghost:preview-boo` | main → overlay        | `{ pattern }`                                         |
+| `ghost:position`    | overlay → main        | `{ x, y }` (4Hz, AI 컨텍스트의 커서 거리용)           |
+| `ghost:approach`    | main → overlay        | `{ x, y }`                                            |
+| `ghost:arrived`     | overlay → main        | `{}`                                                  |
+| `ghost:boo-ended`   | overlay → main        | `{}`                                                  |
+| `demo:targets`      | demo → main           | `{ id, label, rect, disabled }[]`                     |
+| `demo:explode`      | main → demo           | `{ id }`                                              |
+| `demo:exploded`     | demo → main           | `{ id }`                                              |
+| `debug:decision`    | main → debug (TARGET) | `DecisionRecord`                                      |
 
 ### 7.4 디렉터리
 

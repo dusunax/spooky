@@ -19,7 +19,11 @@ function MischiefGauge({ gauge }: { gauge: number }): React.JSX.Element {
       aria-valuemax={100}
       aria-valuenow={gauge}
     >
-      <div className="gauge-fill" style={{ width: `${gauge}%` }} />
+      {/* 차오를 때만 부드럽게, 0으로 리셋될 때는 바로 비운다 */}
+      <div
+        className="gauge-fill"
+        style={{ width: `${gauge}%`, transition: gauge === 0 ? 'none' : undefined }}
+      />
     </div>
   )
 }

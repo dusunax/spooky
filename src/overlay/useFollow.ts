@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import type { CursorUpdate } from '../shared/ipc'
 
 // PRD §4 FR-02 기본값
@@ -9,14 +9,31 @@ const FOLLOW = {
   stopThreshold: 8,
   personalSpace: 48, // 유령 중심이 이 반경 안으로 들어오면 밀어낸다 (시야 가림 방지)
   size: 64,
-  topReserve: 38 // 머리 위 상태 패널(텍스트·게이지) 공간
+  topReserve: 38, // 머리 위 상태 패널(텍스트·게이지) 공간
+  approachLerp: 0.2, // 버튼으로 날아갈 때는 더 빠르게
+  arriveThreshold: 20
 }
 
 const DIAGONAL = FOLLOW.distance / Math.SQRT2
 
 // 유령 중심 좌표를 rAF로 커서 쪽으로 보간하고, ref 요소의 transform을 직접 갱신한다.
 // 매 프레임 React 리렌더를 피하기 위해 상태 대신 ref를 쓴다.
-export function useFollow(ghostRef: RefObject<HTMLElement | null>): void {
+// EXPLODE 중에는 main이 준 버튼 위치로 날아가(APPROACH) 머문다(HOLD) — PRD §5.1 이동 레이어.
+export function useFollow(ghostRef: RefObject<HTMLElement | null>, acting: boolean): void {
+  const approach = useRef<{ x: number; y: number; arrived: boolean } | null>(null)
+
+  // 행동이 끝나면 다시 커서를 따라간다
+  useEffect(() => {
+    if (!acting) approach.current = null
+  }, [acting])
+
+  useEffect(() => {
+    const unsubscribe = window.ghost.on('ghost:approach', (point) => {
+      approach.current = { ...point, arrived: false }
+    })
+    return unsubscribe
+  }, [])
+
   useEffect(() => {
     const el = ghostRef.current
     if (!el) return
@@ -48,7 +65,19 @@ export function useFollow(ghostRef: RefObject<HTMLElement | null>): void {
       const dt = Math.min(now - last, 100)
       last = now
 
-      if (cursor) {
+      const target = approach.current
+      if (target) {
+        const dx = target.x - pos.x
+        const dy = target.y - pos.y
+        const alpha = 1 - Math.pow(1 - FOLLOW.approachLerp, dt / FOLLOW.frameMs)
+        pos.x += dx * alpha
+        pos.y += dy * alpha
+        if (Math.abs(dx * alpha) > 0.3) facing = dx > 0 ? 1 : -1
+        if (!target.arrived && Math.hypot(dx, dy) < FOLLOW.arriveThreshold) {
+          target.arrived = true
+          window.ghost.send('ghost:arrived', {})
+        }
+      } else if (cursor) {
         const tx = cursor.x + side * DIAGONAL
         const ty = cursor.y - DIAGONAL
         const dx = tx - pos.x

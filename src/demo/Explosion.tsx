@@ -1,0 +1,42 @@
+// 레퍼런스 시트 BUTTON EXPLOSION을 단순화: 섬광 → 픽셀 파편 + 연기
+const SPARKS = Array.from({ length: 14 }, (_, i) => {
+  const angle = (i / 14) * Math.PI * 2
+  const distance = 34 + (i % 3) * 14
+  return {
+    dx: Math.round(Math.cos(angle) * distance),
+    dy: Math.round(Math.sin(angle) * distance),
+    color: ['#ffd84d', '#ffa94d', '#ff6f91', '#ffffff'][i % 4]
+  }
+})
+
+const SMOKE = [
+  { dx: -14, dy: -10 },
+  { dx: 12, dy: -14 },
+  { dx: 0, dy: 10 }
+]
+
+function Explosion({ x, y }: { x: number; y: number }): React.JSX.Element {
+  return (
+    <div className="explosion" style={{ left: x, top: y }} aria-hidden="true">
+      <span className="flash" />
+      {SMOKE.map((s, i) => (
+        <span
+          key={`smoke-${i}`}
+          className="smoke"
+          style={{ '--dx': `${s.dx}px`, '--dy': `${s.dy}px` } as React.CSSProperties}
+        />
+      ))}
+      {SPARKS.map((s, i) => (
+        <span
+          key={`spark-${i}`}
+          className="spark"
+          style={
+            { '--dx': `${s.dx}px`, '--dy': `${s.dy}px`, background: s.color } as React.CSSProperties
+          }
+        />
+      ))}
+    </div>
+  )
+}
+
+export default Explosion
