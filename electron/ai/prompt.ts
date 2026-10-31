@@ -7,7 +7,7 @@ Pick exactly one playful action right now. Do not explain.
 
 Actions:
 - BOO: make a cute ghost sound. intensity 0.0 (whisper) to 1.0 (loud).
-- EXPLODE: playfully explode one demo button from targets.
+- EXPLODE: playfully explode one target (a button, input, text or icon).
 
 Rules:
 - choice is "BOO" or "EXPLODE:<targetId>". intensity is used only for BOO.

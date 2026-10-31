@@ -1,0 +1,131 @@
+/* 데모 창 버튼 폭파와 화면 버튼 위 연출(오버레이)이 함께 쓴다 */
+.explosion {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.flash {
+  position: absolute;
+  left: -30px;
+  top: -30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ffd84d 35%, #ffa94d 60%, transparent 70%);
+  animation: flash 0.35s ease-out forwards;
+}
+
+@keyframes flash {
+  from {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.spark {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  animation: spark 0.6s steps(6) forwards;
+}
+
+@keyframes spark {
+  to {
+    transform: translate(var(--dx), var(--dy));
+    opacity: 0;
+  }
+}
+
+.smoke {
+  position: absolute;
+  left: -10px;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(200 200 210 / 70%);
+  animation: smoke 0.7s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes smoke {
+  0% {
+    opacity: 0.8;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), calc(var(--dy) - 12px)) scale(1.4);
+  }
+}
+
+/* 외부 앱 버튼 위: 2.4배 크게, 1.7배 느리게 + BOOM! */
+.explosion--large {
+  transform: scale(2.4);
+}
+
+.explosion--large .flash {
+  animation-duration: 0.6s;
+}
+
+.explosion--large .spark {
+  animation-duration: 1s;
+}
+
+.explosion--large .smoke {
+  animation-duration: 1.2s;
+}
+
+.boom-text {
+  position: absolute;
+  left: 0;
+  top: -26px;
+  transform: translateX(-50%);
+  font:
+    900 11px/1 ui-monospace,
+    Menlo,
+    monospace;
+  color: #ffd84d;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-shadow:
+    1px 0 #1f1f26,
+    -1px 0 #1f1f26,
+    0 1px #1f1f26,
+    0 -1px #1f1f26;
+  animation: boom-text 1s steps(5) forwards;
+}
+
+@keyframes boom-text {
+  0% {
+    transform: translate(-50%, 6px) scale(0.4);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, 0) scale(1.2);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -6px) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark,
+  .smoke,
+  .boom-text {
+    animation: none;
+  }
+}

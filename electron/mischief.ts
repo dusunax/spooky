@@ -50,8 +50,14 @@ function describe(
     case 'ACTING': {
       if (!decision) return 'Action'
       const { action, source } = decision
-      const label = action.type === 'EXPLODE' ? `EXPLODE → ${action.targetId}` : 'BOO'
-      return `Action: ${label}${source === 'fallback' ? ' (fallback)' : ''}`
+      const target =
+        action.type === 'EXPLODE' && action.targetId === 'screen-target'
+          ? 'that one' // 외부 앱 요소 — 라벨은 화면에도 다시 쓰지 않는다
+          : action.type === 'EXPLODE'
+            ? action.targetId
+            : ''
+      const label = action.type === 'EXPLODE' ? `EXPLODE → ${target}` : 'BOO'
+      return `Action: ${label}${source === 'model' ? '' : ` (${source})`}`
     }
     case 'COOLDOWN':
       return 'Cooldown'

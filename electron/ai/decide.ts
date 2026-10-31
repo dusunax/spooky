@@ -17,7 +17,10 @@ export type DecisionRecord = {
 
 type Deps = {
   engine: DecisionEngine
-  getContext: (last: { action: GhostAction['type'] | null; at: number | null }) => DecisionContext
+  getContext: (last: {
+    action: GhostAction['type'] | null
+    at: number | null
+  }) => DecisionContext | Promise<DecisionContext>
   onRecord: (record: DecisionRecord) => void
 }
 
@@ -28,7 +31,7 @@ export function createDecider({ engine, getContext, onRecord }: Deps) {
   let lastActionAt: number | null = null
 
   return async function decide(signal: AbortSignal): Promise<DecideResult> {
-    const context = getContext({ action: lastAction, at: lastActionAt })
+    const context = await getContext({ action: lastAction, at: lastActionAt })
     const startedAt = Date.now()
     let raw: string | null = null
     let failure: 'parse_failed' | 'invalid_target' = 'parse_failed'

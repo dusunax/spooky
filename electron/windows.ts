@@ -58,7 +58,7 @@ export function createOverlayWindow(): BrowserWindow {
 export function createDemoWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 420,
-    height: 280,
+    height: 340,
     title: 'Spooky — Demo',
     resizable: false,
     show: false,

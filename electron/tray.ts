@@ -7,15 +7,18 @@ import type { GhostSettings } from '../src/shared/ipc'
 type TrayActions = {
   showDemo: () => void
   rebuildDemo: () => void
+  testVoice: () => void
   togglePause: () => void
   isPaused: () => boolean
   getSettings: () => GhostSettings
   toggleMute: () => void
   toggleBooPattern: (id: BooPatternId) => void
+  screenButtons: () => { available: boolean; enabled: boolean; trusted: boolean }
+  toggleScreenButtons: () => void
 }
 
 // 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · BOO Sounds · Show Demo · Rebuild · Quit
-export function createTray(actions: TrayActions): Tray {
+export function createTray(actions: TrayActions): { tray: Tray; render: () => void } {
   // 'Template' 이미지 — 메뉴바 밝기·다크 모드에 맞춰 macOS가 색을 바꾼다 (scripts/make-icons.py)
   const image = nativeImage.createFromPath(trayIcon)
   image.setTemplateImage(true)
@@ -39,6 +42,19 @@ export function createTray(actions: TrayActions): Tray {
       click: withRender(() => actions.toggleBooPattern(pattern.id))
     }))
 
+    const screen = actions.screenButtons()
+    const screenItem: MenuItemConstructorOptions = {
+      label: !screen.available
+        ? 'React to On-Screen Buttons (helper not built)'
+        : screen.enabled && !screen.trusted
+          ? 'React to On-Screen Buttons — allow in Accessibility'
+          : 'React to On-Screen Buttons',
+      type: 'checkbox',
+      checked: screen.enabled,
+      enabled: screen.available,
+      click: withRender(actions.toggleScreenButtons)
+    }
+
     tray.setContextMenu(
       Menu.buildFromTemplate([
         { label: actions.isPaused() ? 'Resume' : 'Pause', click: withRender(actions.togglePause) },
@@ -51,9 +67,11 @@ export function createTray(actions: TrayActions): Tray {
             ...booSounds
           ]
         },
+        screenItem,
         { type: 'separator' },
         { label: 'Show Demo Window', click: actions.showDemo },
         { label: 'Rebuild Demo Buttons', click: actions.rebuildDemo },
+        { label: 'Test Ghost Voice', click: actions.testVoice },
         { type: 'separator' },
         { label: 'Quit Spooky', accelerator: 'Command+Q', click: () => app.quit() }
       ])
@@ -61,5 +79,5 @@ export function createTray(actions: TrayActions): Tray {
   }
 
   render()
-  return tray
+  return { tray, render }
 }

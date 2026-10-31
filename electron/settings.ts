@@ -8,12 +8,14 @@ import type { GhostSettings } from '../src/shared/ipc'
 // 재실행해도 유지되는 사용자 설정 — ~/Library/Application Support/spooky/settings.json
 const SettingsSchema = z.object({
   muted: z.boolean(),
-  booPatterns: z.array(z.enum(BOO_PATTERN_IDS)).min(1)
+  booPatterns: z.array(z.enum(BOO_PATTERN_IDS)).min(1),
+  screenButtons: z.boolean().default(false) // 이전 버전 설정 파일에는 없다
 })
 
 export const DEFAULT_SETTINGS: GhostSettings = {
   muted: false,
-  booPatterns: [...BOO_PATTERN_IDS]
+  booPatterns: [...BOO_PATTERN_IDS],
+  screenButtons: false
 }
 
 function settingsPath(): string {

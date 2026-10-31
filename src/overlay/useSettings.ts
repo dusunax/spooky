@@ -5,7 +5,8 @@ import type { GhostSettings } from '../shared/ipc'
 export function useSettings(): GhostSettings {
   const [settings, setSettings] = useState<GhostSettings>({
     muted: false,
-    booPatterns: [...BOO_PATTERN_IDS]
+    booPatterns: [...BOO_PATTERN_IDS],
+    screenButtons: false
   })
   useEffect(() => window.ghost.on('ghost:settings', setSettings), [])
   return settings

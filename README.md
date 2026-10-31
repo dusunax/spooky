@@ -2,7 +2,7 @@
 
 A pixel ghost that haunts your desktop. It follows your cursor, charges a mischief gauge,
 and when the gauge is full a **local open-weight model** decides what prank to pull —
-a cute `BOO`, or exploding a button in its own demo window.
+a cute `BOO`, or exploding a button or input in its own demo window.
 
 > Hacktoberfest 2026 · DEV Open-Source AI Challenge Week 4 — _Ghost in the Machine_
 > Status: early scaffold. See [`docs/PRD.md`](docs/PRD.md) for the plan.
@@ -40,9 +40,18 @@ Each decision is logged to the terminal as `[spooky] decision {...}` with the co
 
 Spooky lives in the menu bar (no Dock icon). Use the tray menu → **Quit Spooky** to exit.
 
+## On-screen buttons (optional)
+
+Turn on **React to On-Screen Buttons** in the menu bar. With macOS Accessibility permission, Spooky looks within 120px of your cursor in other apps and picks the nearest button, input, text (label/span) or icon (svg) — its role, label and position, nothing else — and gives that to the model as one more target. It never reads what you typed into an input, and skips password fields entirely. If the model picks it, Spooky flies over and draws an explosion while reading its text aloud in a ghostly voice (macOS `say` + echo/reverb, skipped when muted) — and a scorch mark **on top of** it. The real element is never clicked, disabled or changed.
+
+- Off by default. Without the permission Spooky only haunts its demo window.
+- Labels go to the local model only; logs show `[on-screen element]` instead.
+- Rebuilding an ad-hoc signed app resets the Accessibility permission. Create a self-signed **Code Signing** certificate named `Spooky Dev` in Keychain Access once, and `npm run build:mac` signs with it so the permission survives rebuilds.
+- Building it needs Xcode Command Line Tools (`swiftc`). `npm run dev` compiles `native/ax-probe.swift` automatically.
+
 ## Safety
 
-Spooky only touches buttons in its own demo window. It never interacts with other apps,
+Spooky only breaks buttons in its own demo window. Other apps are read-only (and only when you turn on on-screen buttons): it never clicks or changes them,
 never reads or writes your files, and only talks to Ollama on `127.0.0.1`.
 
 ## License

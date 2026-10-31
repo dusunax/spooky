@@ -2,6 +2,7 @@
 // 매번 같은 소리면 금방 질려서, 설정에서 켠 패턴 중 하나를 랜덤으로 고른다. 직전 패턴은 피한다.
 
 import type { BooPatternId } from '../shared/boo-patterns'
+import { audioContext } from './context'
 
 const MASTER_VOLUME = 0.3 // 기본 볼륨 제한 (PRD §9 사용성)
 
@@ -59,13 +60,7 @@ const PATTERNS: Record<BooPatternId, BooPattern> = {
   }
 }
 
-let context: AudioContext | null = null
 let lastPattern: BooPatternId | null = null
-
-function audio(): AudioContext {
-  context ??= new AudioContext()
-  return context
-}
 
 function pickPattern(allowed: BooPatternId[]): BooPatternId {
   const pool = allowed.length > 0 ? allowed : (Object.keys(PATTERNS) as BooPatternId[])
@@ -91,7 +86,7 @@ function play(pattern: BooPattern, intensity: number, muted: boolean): Promise<v
   const duration = pattern.seconds * (1 + 0.5 * intensity)
   if (muted) return new Promise((resolve) => setTimeout(resolve, duration * 1000))
 
-  const ctx = audio()
+  const ctx = audioContext()
   const now = ctx.currentTime
   const end = now + duration
   const peak = MASTER_VOLUME * (0.4 + 0.6 * intensity)
