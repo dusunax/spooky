@@ -1,5 +1,5 @@
-appId: dev.dusuna.ghosty
-productName: Ghosty
+appId: dev.dusuna.spooky
+productName: Spooky
 directories:
   buildResources: build
 files:

@@ -8,7 +8,7 @@ const TARGETS = [
 function Demo(): React.JSX.Element {
   return (
     <main className="demo">
-      <p className="hint">Ghosty may haunt these buttons.</p>
+      <p className="hint">Spooky may haunt these buttons.</p>
       <div className="buttons">
         {TARGETS.map((target) => (
           <button key={target.id} type="button" data-ghost-target={target.id}>

@@ -1,6 +1,7 @@
 // IPC 계약 — docs/PRD.md §7.3. preload는 여기 있는 채널만 통과시킨다.
 
-export type CursorUpdate = { x: number; y: number; speed: number }
+// x·y는 오버레이(현재 디스플레이) 로컬 좌표, origin은 그 디스플레이의 전역 원점
+export type CursorUpdate = { x: number; y: number; speed: number; origin: { x: number; y: number } }
 
 export type MainToRenderer = {
   'cursor:update': CursorUpdate

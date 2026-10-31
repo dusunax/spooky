@@ -37,7 +37,8 @@ export function createOverlayWindow(): BrowserWindow {
     skipTaskbar: true,
     show: false,
     backgroundColor: '#00000000',
-    webPreferences: secureWebPreferences
+    // 포커스 없는 창이라도 추적 rAF가 멈추지 않게
+    webPreferences: { ...secureWebPreferences, backgroundThrottling: false }
   })
   win.setAlwaysOnTop(true, 'screen-saver')
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
@@ -53,7 +54,7 @@ export function createDemoWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 420,
     height: 280,
-    title: 'Ghosty — Demo',
+    title: 'Spooky — Demo',
     resizable: false,
     show: false,
     backgroundColor: '#14121a',

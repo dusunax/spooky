@@ -9,12 +9,12 @@ type TrayActions = {
 export function createTray({ showDemo }: TrayActions): Tray {
   const image = nativeImage.createFromPath(icon).resize({ width: 18, height: 18 })
   const tray = new Tray(image)
-  tray.setToolTip('Ghosty')
+  tray.setToolTip('Spooky')
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Show Demo Window', click: showDemo },
       { type: 'separator' },
-      { label: 'Quit Ghosty', accelerator: 'Command+Q', click: () => app.quit() }
+      { label: 'Quit Spooky', accelerator: 'Command+Q', click: () => app.quit() }
     ])
   )
   return tray
