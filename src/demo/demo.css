@@ -1,0 +1,47 @@
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: #14121a;
+  color: #e9e6f2;
+  font:
+    14px/1.4 ui-monospace,
+    Menlo,
+    monospace;
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  height: 100%;
+}
+
+.hint {
+  margin: 0;
+  color: #9a94ad;
+}
+
+.buttons {
+  display: flex;
+  gap: 12px;
+}
+
+button {
+  padding: 10px 14px;
+  border: 2px solid #000;
+  border-radius: 2px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  box-shadow: 3px 3px 0 #000;
+  cursor: pointer;
+}
+
+button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #000;
+}
