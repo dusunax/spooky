@@ -3,6 +3,7 @@ import Explosion from './Explosion'
 import type { DemoTarget } from '../shared/ipc'
 
 // 폭파 대상 버튼 — 실제 동작 없음. 이 창 밖의 앱은 절대 건드리지 않는다 (PRD §4 FR-05).
+// 한 번 폭파된 버튼은 돌아오지 않는다. Rebuild(이 창 또는 트레이)로만 되살린다.
 const TARGETS = [
   { id: 'btn-save', label: 'Save' },
   { id: 'btn-submit', label: 'Submit' },
@@ -11,7 +12,6 @@ const TARGETS = [
 
 const SHAKE_MS = 300
 const BOOM_MS = 700 // 폭발 연출이 끝나면 main에 알려 쿨다운으로 넘긴다
-const RESTORE_MS = 3000 // 비활성화 후 복구까지 (PRD: 3초)
 
 type Phase = 'shake' | 'broken'
 type Boom = { key: number; x: number; y: number }
@@ -35,7 +35,7 @@ function Demo(): React.JSX.Element {
         rect: rect
           ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
           : { x: 0, y: 0, width: 0, height: 0 },
-        disabled: phasesRef.current[id] !== undefined
+        disabled: phasesRef.current[id] !== undefined // 폭파 중이거나 이미 부서짐
       }
     })
     window.ghost.send('demo:targets', targets)
@@ -71,26 +71,26 @@ function Demo(): React.JSX.Element {
           setBooms((b) => b.filter((item) => item.key !== boom.key))
           window.ghost.send('demo:exploded', { id })
         })
-        later(RESTORE_MS, () =>
-          setPhases((p) => {
-            const next = { ...p }
-            delete next[id]
-            return next
-          })
-        )
       })
     })
 
-    // 창이 닫히면 복구 타이머도 함께 정리된다
+    const unsubscribeReset = window.ghost.on('demo:reset', () => setPhases({}))
+
     return () => {
       unsubscribe()
+      unsubscribeReset()
       timers.forEach(clearTimeout)
     }
   }, [])
 
+  const brokenCount = Object.values(phases).filter((phase) => phase === 'broken').length
+  const allBroken = brokenCount === TARGETS.length
+
   return (
     <main className="demo">
-      <p className="hint">Spooky may haunt these buttons.</p>
+      <p className="hint">
+        {allBroken ? 'Every button is gone. Spooky is pleased.' : 'Spooky may haunt these buttons.'}
+      </p>
       <div className="buttons">
         {TARGETS.map((target) => (
           <button
@@ -108,6 +108,11 @@ function Demo(): React.JSX.Element {
           </button>
         ))}
       </div>
+      {brokenCount > 0 && (
+        <button type="button" className="rebuild" onClick={() => setPhases({})}>
+          Rebuild {brokenCount === 1 ? 'button' : `${brokenCount} buttons`}
+        </button>
+      )}
       {booms.map((boom) => (
         <Explosion key={boom.key} x={boom.x} y={boom.y} />
       ))}

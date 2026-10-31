@@ -64,7 +64,7 @@ Spooky는 데스크톱 위를 떠다니는 픽셀 아트 유령 펫이다. 마�
 | 10~20s | 게이지 충전, 80% 이상에서 장난스러운 표정 | `Mischief 80%`                               |
 | 20~25s | 게이지 100%, 점멸 후 멈춤                 | `Thinking...`                                |
 | 25~35s | 모델 결정 → BOO 또는 EXPLODE              | `Action: BOO` / `Action: EXPLODE → btn-save` |
-| 35~45s | 버튼 3초 후 복구, 쿨다운 5초              | `Cooldown`                                   |
+| 35~45s | 부서진 버튼은 그대로, 쿨다운 5초          | `Cooldown`                                   |
 | 45s~   | 다시 추적                                 | `Following cursor`                           |
 
 > 데모 촬영 시에는 `SPOOKY_CHARGE_SECONDS=8` 같은 환경변수로 충전 시간을 줄여 한 영상에 BOO·EXPLODE를 모두 담는다.
@@ -83,7 +83,7 @@ Spooky는 데스크톱 위를 떠다니는 픽셀 아트 유령 펫이다. 마�
 | FR-02  | 추적       | `screen.getCursorScreenPoint()` 30Hz 폴링, lerp 0.08, 목표 거리 60px, 화면 밖 이동 방지, 커서가 있는 디스플레이로 오버레이 이동 |
 | FR-03  | 게이지     | 0→100, 20초 충전, 머리 위 48×6px, 쿨다운 중 정지                                                                                |
 | FR-04  | AI 결정    | Ollama `/api/chat` + `format`(JSON 스키마) + Zod 검증, 파싱 실패 1회 재시도                                                     |
-| FR-05  | EXPLODE    | 데모 창 버튼 3개 중 1개: 유령 접근 → 흔들림·색 변경·파티클(데모 창 내부 CSS) → disabled → 3초 후 복구                           |
+| FR-05  | EXPLODE    | 데모 창 버튼 3개 중 1개: 유령 접근 → 흔들림·색 변경·파티클(데모 창 내부 CSS) → 영구 disabled(Rebuild로만 복구)                  |
 | FR-06  | BOO        | Web Audio로 합성한 "우우우~" (오디오 파일·라이선스 문제 없음) + 입 벌린 얼굴 + 몸통 팽창                                        |
 | FR-07  | 상태 표시  | 머리 위 한 줄 텍스트 (`Following cursor` / `Mischief n%` / `Thinking...` / `Action: …` / `AI offline`)                          |
 | FR-08  | 제어       | 트레이 메뉴: Pause/Resume, Mute/Unmute, BOO Sounds, Quit. Dock 아이콘 숨김. Mute·BOO Sounds는 `userData/settings.json`에 저장   |
@@ -185,7 +185,7 @@ type DecisionContext = {
   distanceToCursor: number // px, 정수
   lastAction: 'BOO' | 'EXPLODE' | null
   secondsSinceLastAction: number | null
-  targets: { id: string; label: string }[] // 현재 폭파 가능한 버튼 (데모 창이 닫혀 있거나 복구 중이면 제외)
+  targets: { id: string; label: string }[] // 현재 폭파 가능한 버튼 (데모 창이 닫혀 있거나 이미 부서졌으면 제외)
 }
 ```
 
@@ -261,7 +261,7 @@ Context:
 3. main → overlay: `ghost:approach { x, y }`
 4. overlay 도착(목표 20px 이내 또는 1.5초 경과) → main → demo: `demo:explode { id }`
 5. demo: 흔들림 300ms → 그을린 스타일 + 섬광·파편·연기 → `disabled` → 연출(0.7초) 끝에 `demo:exploded { id }`
-6. main: COOLDOWN 진입, 유령은 다시 커서 추적. 버튼은 데모 창이 3초 뒤 스스로 복구하고 `demo:targets`로 다시 알린다
+6. main: COOLDOWN 진입, 유령은 다시 커서 추적. **부서진 버튼은 돌아오지 않는다** (2026-10-31 사용자 결정). 데모 창의 Rebuild 버튼이나 트레이 `Rebuild Demo Buttons`(`demo:reset`)로만 되살린다. 세 개가 모두 부서지면 대상이 비어 모델은 BOO만 고를 수 있다
 
 대상 목록은 호출마다 순서를 섞어 모델에 넘긴다 — 실측에서 qwen3:1.7b가 목록 맨 앞(`btn-save`)만 3/3 골랐다.
 
@@ -269,7 +269,7 @@ Context:
 
 - 데모 창이 닫혀 있음 / 최소화 / 다른 디스플레이 → `targets`에서 제외 → 모델이 EXPLODE를 고를 수 없음
 - 모델이 없는 id를 반환 → BOO(intensity 0.5) 폴백, `source:'fallback'`, `fallbackReason:'invalid_target'`
-- 복구 타이머는 demo 창이 소유하고, 창이 닫히면 함께 정리 — **복구율 100%** 보장
+- 데모 창을 닫았다 다시 열면 버튼도 새로 만들어진다
 
 ### FR-06. 귀신 소리 — BOO (P0)
 
@@ -323,7 +323,7 @@ type MischiefState =
 | CHARGING   | gauge = 100                         | THINKING                                                      |
 | THINKING   | 유효한 결정(모델 또는 폴백)         | ACTING                                                        |
 | THINKING   | 연결 실패 / 모델 없음 / 타임아웃    | AI_OFFLINE                                                    |
-| ACTING     | BOO 사운드 종료 / EXPLODE 복구 시작 | COOLDOWN                                                      |
+| ACTING     | BOO 사운드 종료 / EXPLODE 연출 종료 | COOLDOWN                                                      |
 | COOLDOWN   | 5초                                 | CHARGING (gauge 0)                                            |
 | AI_OFFLINE | 재연결 성공                         | THINKING                                                      |
 | (any)      | Pause                               | PAUSED (이전 상태 기억)                                       |
@@ -388,7 +388,7 @@ type MischiefState =
 | ---------------- | ------------------------------------------------------------------------------------------------ |
 | main             | 창 생성, 커서 폴링, 게이지·Mischief 상태의 **단일 진실 공급원**, Ollama 호출, 트레이, IPC 라우팅 |
 | overlay renderer | 유령 렌더, lerp 이동, 게이지·상태 텍스트, BOO 사운드 재생                                        |
-| demo renderer    | 버튼 렌더, 버튼 rect 보고, 폭파·복구 연출                                                        |
+| demo renderer    | 버튼 렌더, 버튼 rect 보고, 폭파 연출, Rebuild                                                    |
 | preload          | `contextBridge`로 채널 화이트리스트만 노출                                                       |
 
 게이지·상태를 main이 소유하는 이유: overlay가 숨겨지거나 리로드돼도 상태가 유지되고, AI 호출 중복을 main 한 곳에서 막을 수 있다.
@@ -500,7 +500,7 @@ interface DecisionEngine {
 - [ ] 유령 아래를 클릭해도 아래 앱이 정상 반응한다
 - [ ] 게이지가 자동 충전되고, 100에서 **실제 Ollama 호출**이 일어난다 (로그로 확인)
 - [ ] 모델 결정으로 BOO와 EXPLODE가 **각각 1회 이상** 실행된 것을 확인했다 (`source:'model'`)
-- [ ] EXPLODE 후 버튼이 3초 뒤 복구된다 (10회 반복 시 10회 모두)
+- [ ] EXPLODE된 버튼은 부서진 채 남고, Rebuild로 세 버튼이 모두 되살아난다
 - [ ] Ollama를 끈 상태로 실행해도 크래시 없이 `AI offline`으로 동작한다
 - [ ] 트레이에서 Pause·Mute·Quit이 동작한다
 - [ ] 5분 연속 실행 중 크래시 없음
@@ -541,7 +541,7 @@ interface DecisionEngine {
 | -------------- | ---------------------------------------------------- |
 | 실제 모델 결정 | 데모 중 `source:'model'` 비율 100% (폴백 0회)        |
 | 행동 종류      | BOO·EXPLODE 2종 모두 영상에 등장                     |
-| 버튼 복구      | 100%                                                 |
+| 버튼 상태      | 부서진 버튼 유지 100%, Rebuild 후 정상 100%          |
 | 안정성         | 영상 촬영 중 크래시 0회, 5분 연속 실행               |
 | 결정 지연      | p50 2초 이하 (THINKING이 데모 흐름을 끊지 않을 정도) |
 | 공개           | GitHub public + DEV 제출 기한 내                     |
@@ -576,7 +576,7 @@ interface DecisionEngine {
 | 3   | 게이지 + Mischief 상태 머신 (main) + 상태 텍스트                    | 30분              |
 | 4   | Ollama 헬스체크 + chat + Zod + 폴백                                 | 40분              |
 | 5   | BOO (Web Audio + 얼굴)                                              | 20분              |
-| 6   | 데모 창 + 좌표 계약 + EXPLODE + 복구                                | 45분              |
+| 6   | 데모 창 + 좌표 계약 + EXPLODE + Rebuild                             | 45분              |
 | 7   | 트레이 (Pause·Mute·Quit)                                            | 15분              |
 | 8   | README · LICENSE · GIF 촬영 · DEV 글                                | 45분              |
 |     | **합계**                                                            | **약 4시간 15분** |

@@ -33,7 +33,7 @@ export type DemoTarget = {
   id: string
   label: string
   rect: { x: number; y: number; width: number; height: number }
-  disabled: boolean // 폭파 후 복구 중
+  disabled: boolean // 폭파 중이거나 이미 부서짐
 }
 
 export type MainToRenderer = {
@@ -43,6 +43,7 @@ export type MainToRenderer = {
   'ghost:preview-boo': { pattern: BooPatternId }
   'ghost:approach': { x: number; y: number } // 오버레이 로컬 좌표
   'demo:explode': { id: string }
+  'demo:reset': Record<string, never> // 부서진 버튼 되살리기
 }
 
 export type RendererToMain = {
@@ -59,7 +60,8 @@ export const MAIN_TO_RENDERER = [
   'ghost:settings',
   'ghost:preview-boo',
   'ghost:approach',
-  'demo:explode'
+  'demo:explode',
+  'demo:reset'
 ] as const satisfies readonly (keyof MainToRenderer)[]
 export const RENDERER_TO_MAIN = [
   'ghost:arrived',

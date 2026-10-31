@@ -6,6 +6,7 @@ import type { GhostSettings } from '../src/shared/ipc'
 
 type TrayActions = {
   showDemo: () => void
+  rebuildDemo: () => void
   togglePause: () => void
   isPaused: () => boolean
   getSettings: () => GhostSettings
@@ -13,7 +14,7 @@ type TrayActions = {
   toggleBooPattern: (id: BooPatternId) => void
 }
 
-// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · BOO Sounds · Show Demo · Quit
+// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · BOO Sounds · Show Demo · Rebuild · Quit
 export function createTray(actions: TrayActions): Tray {
   // 'Template' 이미지 — 메뉴바 밝기·다크 모드에 맞춰 macOS가 색을 바꾼다 (scripts/make-icons.py)
   const image = nativeImage.createFromPath(trayIcon)
@@ -52,6 +53,7 @@ export function createTray(actions: TrayActions): Tray {
         },
         { type: 'separator' },
         { label: 'Show Demo Window', click: actions.showDemo },
+        { label: 'Rebuild Demo Buttons', click: actions.rebuildDemo },
         { type: 'separator' },
         { label: 'Quit Spooky', accelerator: 'Command+Q', click: () => app.quit() }
       ])

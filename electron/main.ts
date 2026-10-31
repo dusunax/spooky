@@ -117,6 +117,9 @@ app.whenReady().then(() => {
   showDemo()
   tray = createTray({
     showDemo,
+    rebuildDemo: () => {
+      if (demo && !demo.isDestroyed()) demo.webContents.send('demo:reset', {})
+    },
     togglePause: () => {
       if (!mischief) return
       if (mischief.isPaused()) mischief.resume()
