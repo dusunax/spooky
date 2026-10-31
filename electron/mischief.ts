@@ -29,6 +29,7 @@ type Deps = {
 
 export type Mischief = {
   finishAction: () => void
+  setOffline: (reason: 'offline' | 'model_missing') => void
   pause: () => void
   resume: () => void
   isPaused: () => boolean
@@ -159,6 +160,10 @@ export function createMischief({ decide, onState, onAction, config }: Deps): Mis
 
   return {
     finishAction,
+    // 시작 헬스체크 실패 시 게이지가 의미 없이 차지 않게 바로 AI_OFFLINE으로 (PRD §6)
+    setOffline(reason) {
+      if (state === 'CHARGING') goOffline(reason)
+    },
     pause() {
       if (state === 'PAUSED') return
       pausedFrom = state

@@ -27,6 +27,7 @@ export type MainToRenderer = {
 export type RendererToMain = {
   'ghost:arrived': Record<string, never>
   'ghost:boo-ended': Record<string, never>
+  'ghost:position': { x: number; y: number } // 유령 중심, 오버레이 로컬 좌표
 }
 
 export const MAIN_TO_RENDERER = [
@@ -35,7 +36,8 @@ export const MAIN_TO_RENDERER = [
 ] as const satisfies readonly (keyof MainToRenderer)[]
 export const RENDERER_TO_MAIN = [
   'ghost:arrived',
-  'ghost:boo-ended'
+  'ghost:boo-ended',
+  'ghost:position'
 ] as const satisfies readonly (keyof RendererToMain)[]
 
 export type GhostBridge = {

@@ -9,8 +9,14 @@ type Sample = { x: number; y: number; t: number }
 // 전역 커서 좌표를 30Hz로 읽어 오버레이 로컬 좌표로 보낸다 (PRD §4 FR-02).
 // getCursorScreenPoint는 macOS 손쉬운 사용 권한이 필요 없다.
 // 커서가 다른 디스플레이로 넘어가면 오버레이 창도 그 디스플레이로 옮긴다.
-export function startCursorPolling(overlay: BrowserWindow): () => void {
+export type CursorPolling = {
+  latest: () => CursorUpdate | null
+  stop: () => void
+}
+
+export function startCursorPolling(overlay: BrowserWindow): CursorPolling {
   const samples: Sample[] = []
+  let latest: CursorUpdate | null = null
   let displayId: number | null = null
   let origin = { x: 0, y: 0 }
 
@@ -39,8 +45,12 @@ export function startCursorPolling(overlay: BrowserWindow): () => void {
       speed: Math.round(speed),
       origin
     }
+    latest = update
     overlay.webContents.send('cursor:update', update)
   }, POLL_MS)
 
-  return () => clearInterval(timer)
+  return {
+    latest: () => latest,
+    stop: () => clearInterval(timer)
+  }
 }

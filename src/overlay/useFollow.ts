@@ -9,7 +9,7 @@ const FOLLOW = {
   stopThreshold: 8,
   personalSpace: 48, // 유령 중심이 이 반경 안으로 들어오면 밀어낸다 (시야 가림 방지)
   size: 64,
-  topReserve: 28 // 머리 위 상태 텍스트·게이지 공간
+  topReserve: 38 // 머리 위 상태 패널(텍스트·게이지) 공간
 }
 
 const DIAGONAL = FOLLOW.distance / Math.SQRT2
@@ -42,6 +42,7 @@ export function useFollow(ghostRef: RefObject<HTMLElement | null>): void {
 
     let raf = 0
     let last = performance.now()
+    let lastReport = 0
 
     const tick = (now: number): void => {
       const dt = Math.min(now - last, 100)
@@ -78,6 +79,11 @@ export function useFollow(ghostRef: RefObject<HTMLElement | null>): void {
 
       el.style.transform = `translate3d(${pos.x - half}px, ${pos.y - half}px, 0)`
       el.dataset.facing = facing === 1 ? 'right' : 'left'
+      // AI 컨텍스트(커서와의 거리)용 — main에 4Hz로만 알린다
+      if (now - lastReport > 250) {
+        lastReport = now
+        window.ghost.send('ghost:position', { x: Math.round(pos.x), y: Math.round(pos.y) })
+      }
       raf = requestAnimationFrame(tick)
     }
 
