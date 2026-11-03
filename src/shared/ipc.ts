@@ -13,7 +13,11 @@ export type MischiefState =
 export type GhostAction = { type: 'BOO'; intensity: number } | { type: 'EXPLODE'; targetId: string }
 
 // debug = SPOOKY_DEBUG_SCREEN_TARGET로 모델을 거치지 않고 화면 요소를 강제로 고른 것
-export type Decision = { action: GhostAction; source: 'model' | 'fallback' | 'debug' }
+export type Decision = {
+  action: GhostAction
+  source: 'model' | 'fallback' | 'debug'
+  line?: string // 모델이 만든 유령의 한마디 (말풍선·목소리)
+}
 
 export type GhostState = {
   mischief: MischiefState

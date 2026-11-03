@@ -48,6 +48,12 @@ function Overlay(): React.JSX.Element {
             <MischiefGauge gauge={gauge} />
           </div>
           <GhostSprite frame={booing ? 'boo' : 'idle'} />
+          {/* 모델이 만든 유령의 한마디 — 행동하는 동안만 */}
+          {mischief === 'ACTING' && decision?.line && (
+            <p className="bubble" role="status">
+              {decision.line}
+            </p>
+          )}
         </div>
       </div>
       {screenBooms.map((boom) => (

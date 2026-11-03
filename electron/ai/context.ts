@@ -8,6 +8,8 @@ type Inputs = {
   targets: DecisionContext['targets']
 }
 
+const HANGUL = /[\u3131-\u318e\uac00-\ud7a3]/
+
 function speedBucket(pxPerSecond: number): DecisionContext['cursorSpeed'] {
   if (pxPerSecond < 40) return 'still'
   if (pxPerSecond < 800) return 'slow'
@@ -32,6 +34,7 @@ export function buildContext({ cursor, ghost, last, targets }: Inputs): Decision
     distanceToCursor: distance,
     lastAction: last.action,
     secondsSinceLastAction: last.at === null ? null : Math.round((Date.now() - last.at) / 1000),
-    targets: shuffled(targets)
+    targets: shuffled(targets),
+    lineLanguage: targets.some((t) => HANGUL.test(t.label)) ? 'Korean' : 'English'
   }
 }

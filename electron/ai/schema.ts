@@ -8,6 +8,7 @@ export type DecisionContext = {
   lastAction: GhostAction['type'] | null
   secondsSinceLastAction: number | null
   targets: { id: string; label: string }[]
+  lineLanguage: 'Korean' | 'English' // 대상 글씨에 한글이 있으면 한국어로 말하게 한다
 }
 
 // 소형 모델이 EXPLODE를 고르고 대상을 비워 두는 일이 잦아서(실측),
@@ -24,19 +25,47 @@ export function outputJsonSchema(context: DecisionContext): object {
     type: 'object',
     properties: {
       choice: { enum: choicesFor(context) },
-      intensity: { type: 'number' }
+      intensity: { type: 'number' },
+      // 고른 뒤에 대사를 쓰도록 맨 뒤에 둔다
+      // 문법으로 글자 수를 자르면 문장 중간에서 끊긴다 — 넉넉히 두고 cleanLine이 첫 문장만 남긴다
+      line: { type: 'string', maxLength: 120 }
     },
-    required: ['choice', 'intensity']
+    required: ['choice', 'intensity', 'line']
   }
 }
 
+// 유령의 한마디 — 말풍선과 목소리로 쓴다
+export const LINE_LIMIT = { maxWords: 5, maxChars: 40 }
+
 const ModelOutput = z.object({
   choice: z.string(),
-  intensity: z.number()
+  intensity: z.number(),
+  line: z.string().optional()
 })
 
 export type ParseResult =
-  { ok: true; action: GhostAction } | { ok: false; reason: 'parse_failed' | 'invalid_target' }
+  | { ok: true; action: GhostAction; line: string }
+  | { ok: false; reason: 'parse_failed' | 'invalid_target' }
+
+// 따옴표·이모지를 걷어 내고 첫 문장만, 5단어·40자 안에서 단어 경계로 자른다
+function cleanLine(line: string | undefined): string {
+  // 이모지·따옴표는 뺀다 — 목소리가 이모지 이름을 읽어 버린다
+  const words = (line ?? '')
+    .replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '')
+    .replace(/["“”]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+  // 첫 문장(? ! . 까지)만 — 긴 대사가 중간에서 끊기지 않게
+  const firstSentence = words.join(' ').match(/^.*?[?!.]+/)?.[0] ?? words.join(' ')
+  let out = ''
+  for (const word of firstSentence.split(' ').slice(0, LINE_LIMIT.maxWords)) {
+    const next = out ? `${out} ${word}` : word
+    if (next.length > LINE_LIMIT.maxChars) break
+    out = next
+  }
+  return out
+}
 
 // 형식 강제와 별개로 한 번 더 검증한다 — 허용 목록 밖의 행동은 실행되지 않는다 (PRD §9 안전)
 export function parseModelOutput(raw: string, context: DecisionContext): ParseResult {
@@ -50,15 +79,16 @@ export function parseModelOutput(raw: string, context: DecisionContext): ParseRe
   if (!parsed.success) return { ok: false, reason: 'parse_failed' }
 
   const { choice, intensity } = parsed.data
+  const line = cleanLine(parsed.data.line)
   if (choice === 'BOO') {
     if (intensity < 0 || intensity > 1) return { ok: false, reason: 'parse_failed' }
-    return { ok: true, action: { type: 'BOO', intensity } }
+    return { ok: true, action: { type: 'BOO', intensity }, line: '' } // BOO는 대사 없이 소리만
   }
   if (choice.startsWith(EXPLODE_PREFIX)) {
     const targetId = choice.slice(EXPLODE_PREFIX.length)
     if (!context.targets.some((t) => t.id === targetId))
       return { ok: false, reason: 'invalid_target' }
-    return { ok: true, action: { type: 'EXPLODE', targetId } }
+    return { ok: true, action: { type: 'EXPLODE', targetId }, line }
   }
   return { ok: false, reason: 'parse_failed' }
 }

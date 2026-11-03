@@ -177,6 +177,55 @@ body,
   }
 }
 
+/* 유령의 한마디 — 오른쪽 옆 유리 말풍선 */
+.bubble {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 4px;
+  width: max-content;
+  max-width: 200px;
+  margin: 0;
+  padding: 6px 9px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 92%), rgb(240 238 255 / 85%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 80%),
+    0 3px 10px rgb(20 20 40 / 25%);
+  color: #1f1f26;
+  font:
+    600 12px/1.35 ui-rounded,
+    'SF Pro Rounded',
+    system-ui,
+    sans-serif;
+  animation: bubble-in 0.2s steps(3) both;
+}
+
+/* 꼬리 */
+.bubble::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 12px;
+  width: 10px;
+  height: 10px;
+  background: rgb(255 255 255 / 92%);
+  border-left: 1px solid rgb(255 255 255 / 70%);
+  border-bottom: 1px solid rgb(255 255 255 / 70%);
+  transform: rotate(45deg);
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* 외부 버튼 위 그을음 — 2.6초 동안 나타났다 사라진다 */
 .scorch {
   position: fixed;
@@ -215,7 +264,8 @@ body,
   .ghost-bob,
   .gauge[data-full],
   .ghost[data-action] .sprite,
-  .ghost[data-action] .ghost-bob {
+  .ghost[data-action] .ghost-bob,
+  .bubble {
     animation: none;
   }
 }

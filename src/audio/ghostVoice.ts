@@ -1,6 +1,6 @@
 import { audioContext } from './context'
 
-// `say`로 만든 목소리를 귀여운 유령처럼: 아주 높게 · 약한 메아리 · 떨림 (울림은 거의 없음)
+// `say`로 만든 목소리를 귀여운 유령처럼: 아주 높게 · 떨림 · 아주 약한 울림 (메아리는 두 번 말하는 것처럼 들려 뺐다)
 const MASTER_VOLUME = 0.35
 // 음을 아주 높게(약 6반음). 빨라지는 만큼 main이 `say` 속도를 낮춰 들리는 속도는 분당 190단어로 맞춘다
 export const PLAYBACK_RATE = 1.45
@@ -48,13 +48,6 @@ export async function playGhostVoice(wav: Uint8Array): Promise<void> {
   tremolo.gain.value = 0.88
   tremoloLfo.connect(tremoloDepth).connect(tremolo.gain)
 
-  // 메아리: 0.14초 뒤에 짧게 반복
-  const echo = ctx.createDelay(1)
-  const echoFeedback = ctx.createGain()
-  echo.delayTime.value = 0.14
-  echoFeedback.gain.value = 0.2
-  echo.connect(echoFeedback).connect(echo)
-
   const reverb = ctx.createConvolver()
   reverb.buffer = reverbImpulse(ctx)
   const reverbMix = ctx.createGain()
@@ -69,26 +62,20 @@ export async function playGhostVoice(wav: Uint8Array): Promise<void> {
 
   source.connect(tone).connect(tremolo)
   tremolo.connect(output) // 원음
-  const echoMix = ctx.createGain()
-  echoMix.gain.value = 0.25
-  tremolo.connect(echo).connect(echoMix).connect(output) // 약한 메아리
   tremolo.connect(reverb).connect(reverbMix).connect(output) // 울림
   output.connect(ctx.destination)
 
   const nodes: AudioNode[] = [
     source,
-    echoMix,
     tremolo,
     tremoloLfo,
     tremoloDepth,
-    echo,
-    echoFeedback,
     reverb,
     reverbMix,
     tone,
     output
   ]
-  const tailSeconds = 0.5 // 메아리가 잦아들 시간
+  const tailSeconds = 0.3 // 울림이 잦아들 시간
   const playSeconds = Math.min(buffer.duration / PLAYBACK_RATE, MAX_MS / 1000)
 
   return new Promise((resolve) => {
@@ -96,7 +83,7 @@ export async function playGhostVoice(wav: Uint8Array): Promise<void> {
     source.stop(now + playSeconds)
     tremoloLfo.start(now)
     tremoloLfo.stop(now + playSeconds + tailSeconds)
-    // 메아리·울림 꼬리까지 기다렸다가 정리한다
+    // 울림 꼬리까지 기다렸다가 정리한다
     setTimeout(
       () => {
         nodes.forEach((node) => node.disconnect())

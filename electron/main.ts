@@ -38,6 +38,7 @@ const VOICE_SAMPLES = ['Invite collaborators', '협업자 초대']
 let voiceSample = 0
 const DEBUG_SCREEN_TARGET = process.env['SPOOKY_DEBUG_SCREEN_TARGET'] === '1'
 let screenTarget: ScreenButton | null = null // 마지막 판단 때 읽은 커서 근처 외부 요소
+let screenTargetCursor: { x: number; y: number } | null = null // 그때의 커서(전역 좌표)
 
 function showDemo(): void {
   if (demo && !demo.isDestroyed()) {
@@ -98,9 +99,12 @@ app.whenReady().then(() => {
       const targets = record.context.targets.map((t) =>
         t.id === SCREEN_TARGET_ID ? { ...t, label: '[on-screen element]' } : t
       )
+      // 대사·원본 출력에도 화면 글씨가 섞일 수 있어 함께 가린다
+      const sawScreen = record.context.targets.some((t) => t.id === SCREEN_TARGET_ID)
+      const shown = sawScreen ? { ...record, raw: '[redacted]', line: '[redacted]' } : record
       console.info(
         '[spooky] decision',
-        JSON.stringify({ ...record, context: { ...record.context, targets } })
+        JSON.stringify({ ...shown, context: { ...record.context, targets } })
       )
     }
   })
@@ -110,25 +114,24 @@ app.whenReady().then(() => {
     screenTarget = null
     const point = cursor?.latest()
     if (!settings.screenButtons || !point || !overlay || overlay.isDestroyed()) return []
-    const result = await screenButtons.probe({
-      x: point.x + point.origin.x,
-      y: point.y + point.origin.y
-    })
+    const cursorGlobal = { x: point.x + point.origin.x, y: point.y + point.origin.y }
+    const result = await screenButtons.probe(cursorGlobal)
     // 상태와 버튼 종류만 남긴다 — 글씨는 로그에 쓰지 않는다
     console.info(
       '[spooky] screen probe',
       result.status,
       result.status === 'found'
-        ? `${result.button.kind} ${result.button.role} in ${result.button.app}`
+        ? `${result.button.kind} ${result.button.role} in ${result.button.app} ${Math.round(result.button.frame.width)}x${Math.round(result.button.frame.height)}`
         : result.status === 'none'
           ? JSON.stringify(result.miss ?? {})
           : '',
       'ms' in result && result.ms !== undefined ? `${result.ms}ms` : ''
     )
     if (result.status !== 'found') return []
-    // 모델에 넘기는 라벨과 유령이 읽는 글씨를 같은 길이(6단어·40자, 단어 경계)로 맞춘다
+    // 모델에 넘기는 라벨과 유령이 읽는 글씨를 같은 길이(4단어·30자, 단어 경계)로 맞춘다
     const hit = { ...result.button, label: spokenText(result.button.label) }
     screenTarget = hit
+    screenTargetCursor = cursorGlobal
     const where = hit.app ? `${hit.kind} in ${hit.app}` : hit.kind
     return [{ id: SCREEN_TARGET_ID, label: `${hit.label} (${where})` }]
   }
@@ -163,8 +166,14 @@ app.whenReady().then(() => {
   const APPROACH_LIMIT_MS = 1500
   const HOVER_ABOVE = 40
   const VOICE_GRACE_MS = 500
+  const DEMO_SHAKE_MS = 300 // src/demo/Demo.tsx SHAKE_MS와 같은 값
   type Pending =
-    | { kind: 'demo'; id: string; timer: ReturnType<typeof setTimeout> }
+    | {
+        kind: 'demo'
+        id: string
+        voice: Promise<Uint8Array | null>
+        timer: ReturnType<typeof setTimeout>
+      }
     | {
         kind: 'screen'
         spot: { x: number; y: number; width: number; height: number }
@@ -178,45 +187,74 @@ app.whenReady().then(() => {
     const pending = pendingExplode
     pendingExplode = null
     if (pending.kind === 'screen') {
-      // 목소리는 날아가는 동안 만들어 둔다. 늦어지면 조금만 기다리고 목소리 없이 터뜨린다.
-      // 오버레이가 폭발과 목소리를 동시에 시작하고, 둘 다 끝나면 ghost:screen-done으로 알린다
-      const voiceOrNothing = Promise.race([
-        pending.voice,
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), VOICE_GRACE_MS))
-      ])
-      voiceOrNothing.then((voice) =>
-        sendToOverlay('ghost:screen-explode', { ...pending.spot, voice })
-      )
+      burstOnOverlay(pending.spot, pending.voice)
     } else if (demo && !demo.isDestroyed()) {
+      // 데모 창은 버튼을 실제로 부수고, 오버레이는 그 위치에 폭발·목소리를 그린다 —
+      // 데모 창이 다른 창 뒤에 가려져 있어도 폭발이 보이게
       demo.webContents.send('demo:explode', { id: pending.id })
+      const spot = demoTargets.spot(pending.id)
+      // 데모 창 버튼이 0.3초 흔들린 뒤 터지는 타이밍에 맞춘다
+      if (spot) setTimeout(() => burstOnOverlay(spot, pending.voice), DEMO_SHAKE_MS)
     } else {
       mischief?.finishAction()
     }
   }
-  const screenCenter = (button: ScreenButton): { x: number; y: number } | null => {
+  // 목소리는 날아가는 동안 만들어 둔다. 늦어지면 조금만 기다리고 목소리 없이 터뜨린다.
+  // 오버레이가 폭발과 목소리를 동시에 시작하고, 둘 다 끝나면 ghost:screen-done으로 알린다
+  const burstOnOverlay = (
+    spot: { x: number; y: number; width: number; height: number },
+    voice: Promise<Uint8Array | null>
+  ): void => {
+    const voiceOrNothing = Promise.race([
+      voice,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), VOICE_GRACE_MS))
+    ])
+    voiceOrNothing.then((v) => sendToOverlay('ghost:screen-explode', { ...spot, voice: v }))
+  }
+  // 터뜨릴 지점(오버레이 로컬)과 그을음 크기.
+  // 문단처럼 큰 요소는 중심이 커서에서 멀 수 있어, 요소 안에서 커서와 가장 가까운 지점으로 간다
+  const LARGE = { width: 240, height: 60 }
+  const SCORCH_FOR_LARGE = { width: 160, height: 40 }
+  const screenSpot = (
+    button: ScreenButton
+  ): { x: number; y: number; width: number; height: number } | null => {
     if (!overlay || overlay.isDestroyed()) return null
     const b = overlay.getBounds()
+    const { x, y, width, height } = button.frame
+    const large = width > LARGE.width || height > LARGE.height
+    if (!large || !screenTargetCursor) {
+      return { x: x + width / 2 - b.x, y: y + height / 2 - b.y, width, height }
+    }
+    const clamp = (v: number, min: number, max: number): number => Math.min(Math.max(v, min), max)
+    const halfW = Math.min(width, SCORCH_FOR_LARGE.width) / 2
+    const halfH = Math.min(height, SCORCH_FOR_LARGE.height) / 2
     return {
-      x: button.frame.x + button.frame.width / 2 - b.x,
-      y: button.frame.y + button.frame.height / 2 - b.y
+      x: clamp(screenTargetCursor.x, x + halfW, x + width - halfW) - b.x,
+      y: clamp(screenTargetCursor.y, y + halfH, y + height - halfH) - b.y,
+      width: halfW * 2,
+      height: halfH * 2
     }
   }
-  const runAction = ({ action }: Decision): void => {
+  // 유령 목소리 — Mute면 만들지 않는다
+  const voiceFor = (text: string): Promise<Uint8Array | null> =>
+    settings.muted || !text ? Promise.resolve(null) : synthesizeGhostVoice(text)
+
+  const runAction = ({ action, line = '' }: Decision): void => {
     if (action.type !== 'EXPLODE') return // BOO는 오버레이가 재생하고 ghost:boo-ended로 알린다
     const timer = setTimeout(explodeNow, APPROACH_LIMIT_MS)
     if (action.targetId === SCREEN_TARGET_ID) {
-      const center = screenTarget && screenCenter(screenTarget)
-      if (!center) {
+      const spot = screenTarget && screenSpot(screenTarget)
+      if (!spot) {
         clearTimeout(timer)
         mischief?.finishAction()
         return
       }
-      sendToOverlay('ghost:approach', { x: center.x, y: center.y - HOVER_ABOVE })
-      const { width, height } = screenTarget!.frame
+      sendToOverlay('ghost:approach', { x: spot.x, y: spot.y - HOVER_ABOVE })
       pendingExplode = {
         kind: 'screen',
-        spot: { ...center, width, height },
-        voice: settings.muted ? Promise.resolve(null) : synthesizeGhostVoice(screenTarget!.label),
+        spot,
+        // 화면 요소: 그 글씨에 ?를 붙여 읽고 이어서 모델이 만든 한마디
+        voice: voiceFor(line ? `${screenTarget!.label}? ${line}` : screenTarget!.label),
         timer
       }
       return
@@ -228,7 +266,7 @@ app.whenReady().then(() => {
       return
     }
     sendToOverlay('ghost:approach', point)
-    pendingExplode = { kind: 'demo', id: action.targetId, timer }
+    pendingExplode = { kind: 'demo', id: action.targetId, voice: voiceFor(line), timer }
   }
   ipcMain.on('ghost:arrived', explodeNow)
   ipcMain.on('demo:exploded', () => mischief?.finishAction())

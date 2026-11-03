@@ -7,6 +7,8 @@ export type DemoTargets = {
   update: (targets: DemoTarget[]) => void
   eligible: () => { id: string; label: string }[]
   approachPoint: (id: string) => { x: number; y: number } | null
+  // 버튼 중심과 크기(오버레이 로컬) — 데모 창이 가려져 있어도 오버레이에 폭발을 그리기 위해
+  spot: (id: string) => { x: number; y: number; width: number; height: number } | null
 }
 
 const HOVER_ABOVE = 40 // 유령이 버튼 바로 위에 뜨도록
@@ -55,6 +57,19 @@ export function createDemoTargets(
       if (!center || !overlay || overlay.isDestroyed()) return null
       const b = overlay.getBounds()
       return { x: center.x - b.x, y: center.y - b.y - HOVER_ABOVE }
+    },
+    spot(id) {
+      const target = targets.find((t) => t.id === id)
+      const overlay = getOverlay()
+      const center = target && screenCenter(target)
+      if (!target || !center || !overlay || overlay.isDestroyed()) return null
+      const b = overlay.getBounds()
+      return {
+        x: center.x - b.x,
+        y: center.y - b.y,
+        width: target.rect.width,
+        height: target.rect.height
+      }
     }
   }
 }

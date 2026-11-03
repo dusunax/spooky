@@ -9,6 +9,7 @@ export type DecisionRecord = {
   context: DecisionContext
   raw: string | null
   action: GhostAction
+  line: string
   engine: string
   source: Decision['source']
   fallbackReason?: 'parse_failed' | 'invalid_target'
@@ -41,7 +42,7 @@ export function createDecider({ engine, getContext, onRecord }: Deps) {
       for (let attempt = 0; attempt < 2; attempt++) {
         raw = (await engine.decide(context, signal)).raw
         const parsed = parseModelOutput(raw, context)
-        if (parsed.ok) return finish(parsed.action, 'model')
+        if (parsed.ok) return finish(parsed.action, 'model', undefined, parsed.line)
         failure = parsed.reason
         if (parsed.reason === 'invalid_target') break
       }
@@ -54,7 +55,8 @@ export function createDecider({ engine, getContext, onRecord }: Deps) {
     function finish(
       action: GhostAction,
       source: Decision['source'],
-      fallbackReason?: DecisionRecord['fallbackReason']
+      fallbackReason?: DecisionRecord['fallbackReason'],
+      line = ''
     ): DecideResult {
       lastAction = action.type
       lastActionAt = Date.now()
@@ -62,12 +64,13 @@ export function createDecider({ engine, getContext, onRecord }: Deps) {
         context,
         raw,
         action,
+        line,
         engine: engine.label,
         source,
         fallbackReason,
         latencyMs: Date.now() - startedAt
       })
-      return { ok: true, decision: { action, source } }
+      return { ok: true, decision: { action, source, line: line || undefined } }
     }
   }
 }
