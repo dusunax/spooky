@@ -329,18 +329,28 @@ type MischiefState =
 | (any)      | Pause                               | PAUSED (이전 상태 기억)                                       |
 | PAUSED     | Resume                              | 이전 상태 (THINKING이었다면 CHARGING으로 되돌리고 gauge 유지) |
 
-### 5.3 표정 매핑
+### 5.3 표정 매핑 (구현: `src/sprites/expression.ts`, 2026-11-03)
 
-| 조건                 | 표정                          | 단계                                    |
-| -------------------- | ----------------------------- | --------------------------------------- |
-| CHARGING, gauge < 80 | 웃는 얼굴 + 둥실둥실          | MIN                                     |
-| ACTING(BOO)          | 입 크게 + 팽창                | MIN                                     |
-| ACTING(EXPLODE)      | 신난 얼굴 + 튀어 오름         | MIN은 웃는 얼굴 재사용, TARGET에서 추가 |
-| CHARGING, gauge ≥ 80 | 장난스러운 얼굴 + 미세 흔들림 | MAX                                     |
-| THINKING             | 무표정 정지                   | TARGET                                  |
-| COOLDOWN             | 지친 얼굴 + 천천히 축소       | TARGET                                  |
-| AI_OFFLINE           | 졸린 얼굴 (`zzz`)             | TARGET (MIN은 상태 텍스트만)            |
-| PAUSED               | 현재 얼굴 반투명              | MIN                                     |
+| 조건                 | 표정                 | 머리 옆 아이콘 | 움직임        |
+| -------------------- | -------------------- | -------------- | ------------- |
+| CHARGING, gauge < 80 | 웃는 얼굴            | –              | 둥실둥실      |
+| CHARGING, gauge ≥ 80 | 장난기(눈썹·씩 웃음) | –              | 부들부들 떨림 |
+| THINKING             | 골똘히(위를 보는 눈) | `?`            | 멈춤          |
+| ACTING(BOO)          | 입 크게              | –              | 몸통 팽창     |
+| ACTING(EXPLODE)      | 신남(^ ^ 눈)         | 반짝           | 통통 튀기     |
+| COOLDOWN             | 졸림(감은 눈)        | `z`            | 느리게 둥실   |
+| AI_OFFLINE           | 졸림                 | `zzz`          | 느리게 둥실   |
+| PAUSED               | 웃는 얼굴            | –              | 반투명        |
+
+-------------------- | ----------------------------- | --------------------------------------- |
+| CHARGING, gauge < 80 | 웃는 얼굴 + 둥실둥실 | MIN |
+| ACTING(BOO) | 입 크게 + 팽창 | MIN |
+| ACTING(EXPLODE) | 신난 얼굴 + 튀어 오름 | MIN은 웃는 얼굴 재사용, TARGET에서 추가 |
+| CHARGING, gauge ≥ 80 | 장난스러운 얼굴 + 미세 흔들림 | MAX |
+| THINKING | 무표정 정지 | TARGET |
+| COOLDOWN | 지친 얼굴 + 천천히 축소 | TARGET |
+| AI_OFFLINE | 졸린 얼굴 (`zzz`) | TARGET (MIN은 상태 텍스트만) |
+| PAUSED | 현재 얼굴 반투명 | MIN |
 
 ---
 

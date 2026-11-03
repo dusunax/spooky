@@ -2,7 +2,7 @@
 
 python3 scripts/make-icons.py  (Pillow, macOS iconutil 필요)
 """
-import re
+import json
 import shutil
 import subprocess
 import tempfile
@@ -11,14 +11,20 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = (ROOT / 'src/sprites/ghost.ts').read_text()
 
 
 def frame(name: str) -> list[str]:
-    head = re.search(r'const HEAD = \[(.*?)\]', SOURCE, re.S).group(1)
-    tail = re.search(r'const TAIL = \[(.*?)\]', SOURCE, re.S).group(1)
-    mouth = re.search(rf'{name}: \[(.*?)\]', SOURCE, re.S).group(1)
-    rows = re.findall(r"'([.KWGHP]{16})'", head + mouth + tail)
+    # 표정은 ghost.ts가 코드로 조립하므로, rolldown으로 묶어 node에서 프레임을 받아 온다
+    with tempfile.TemporaryDirectory() as tmp:
+        bundle = Path(tmp) / 'ghost.mjs'
+        subprocess.run(
+            [str(ROOT / 'node_modules/.bin/rolldown'), str(ROOT / 'src/sprites/ghost.ts'),
+             '--platform', 'node', '--format', 'esm', '-o', str(bundle)],
+            check=True, capture_output=True)
+        out = subprocess.run(
+            ['node', '-e', f"import('{bundle.as_uri()}').then(m => console.log(JSON.stringify(m.GHOST_FRAMES['{name}'])))"],
+            check=True, capture_output=True, text=True)
+    rows = json.loads(out.stdout)
     assert len(rows) == 16, rows
     return rows
 

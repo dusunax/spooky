@@ -177,6 +177,88 @@ body,
   }
 }
 
+/* 상태별 움직임 (PRD §5.3) */
+/* 게이지 80% 이상: 장난기에 부들부들 */
+.ghost[data-face='mischief'] .sprite {
+  animation: jitter 0.12s steps(2) infinite;
+}
+
+@keyframes jitter {
+  50% {
+    translate: 1px 0;
+  }
+}
+
+/* 생각 중: 둥실거림을 멈추고 골똘히 */
+.ghost[data-mischief='THINKING'] .ghost-bob {
+  animation-play-state: paused;
+}
+
+/* 쿨다운·AI 끊김: 졸려서 느리게 */
+.ghost[data-mischief='COOLDOWN'] .ghost-bob,
+.ghost[data-mischief='AI_OFFLINE'] .ghost-bob {
+  animation-duration: 3.2s;
+}
+
+/* 머리 옆 아이콘 — 3px 픽셀. 위쪽은 상태 패널이 차지해서 머리 오른쪽 옆에 둔다 */
+.head-icon {
+  position: absolute;
+  left: 60px;
+  top: 2px;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
+}
+
+.head-icon--question {
+  width: 15px;
+  height: 21px;
+  animation: icon-bob 0.8s steps(4) infinite alternate;
+}
+
+.head-icon--zzz {
+  width: 24px;
+  height: 21px;
+  animation: icon-drift 2.4s ease-out infinite;
+}
+
+.head-icon--z {
+  width: 9px;
+  height: 12px;
+  animation: icon-drift 2s ease-out infinite;
+}
+
+.head-icon--sparkle {
+  width: 15px;
+  height: 15px;
+  animation: icon-twinkle 0.4s steps(2) infinite;
+}
+
+@keyframes icon-bob {
+  to {
+    translate: 0 -3px;
+  }
+}
+
+@keyframes icon-drift {
+  0% {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 6px -10px;
+  }
+}
+
+@keyframes icon-twinkle {
+  50% {
+    scale: 0.6;
+    opacity: 0.6;
+  }
+}
+
 /* 유령의 한마디 — 오른쪽 옆 유리 말풍선 */
 .bubble {
   position: absolute;
@@ -265,6 +347,8 @@ body,
   .gauge[data-full],
   .ghost[data-action] .sprite,
   .ghost[data-action] .ghost-bob,
+  .ghost[data-face='mischief'] .sprite,
+  .head-icon,
   .bubble {
     animation: none;
   }

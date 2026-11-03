@@ -7,6 +7,7 @@ import { useSettings } from './useSettings'
 import { useBoo } from './useBoo'
 import { useScreenExplosions } from './useScreenExplosions'
 import Explosion from '../effects/Explosion'
+import { expressionFor } from '../sprites/expression'
 
 // 긴 문단 같은 큰 요소는 그을음이 화면을 덮지 않게 크기를 묶는다
 const SCORCH_MAX = { width: 360, height: 120 }
@@ -30,7 +31,7 @@ function Overlay(): React.JSX.Element {
   useBoo(ghostState, settings)
   const { mischief, gauge, statusText, decision } = ghostState
   const screenBooms = useScreenExplosions()
-  const booing = mischief === 'ACTING' && decision?.action.type === 'BOO'
+  const expression = expressionFor(mischief, gauge, decision?.action.type ?? null)
 
   return (
     <>
@@ -40,6 +41,7 @@ function Overlay(): React.JSX.Element {
         data-facing="right"
         data-mischief={mischief}
         data-action={mischief === 'ACTING' ? decision?.action.type : undefined}
+        data-face={expression.face}
       >
         <div className="shadow" />
         <div className="ghost-bob">
@@ -47,7 +49,7 @@ function Overlay(): React.JSX.Element {
             <span className="status">{statusText}</span>
             <MischiefGauge gauge={gauge} />
           </div>
-          <GhostSprite frame={booing ? 'boo' : 'idle'} />
+          <GhostSprite {...expression} />
           {/* 모델이 만든 유령의 한마디 — 행동하는 동안만 */}
           {mischief === 'ACTING' && decision?.line && (
             <p className="bubble" role="status">
