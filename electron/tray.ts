@@ -12,12 +12,21 @@ type TrayActions = {
   isPaused: () => boolean
   getSettings: () => GhostSettings
   toggleMute: () => void
+  setChargeSeconds: (seconds: number) => void
   toggleBooPattern: (id: BooPatternId) => void
   screenButtons: () => { available: boolean; enabled: boolean; trusted: boolean }
   toggleScreenButtons: () => void
 }
 
-// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · BOO Sounds · Show Demo · Rebuild · Quit
+// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · Mischief Every · BOO Sounds · Show Demo · Rebuild · Quit
+
+const CHARGE_CHOICES = [
+  { seconds: 10, label: '10 seconds' },
+  { seconds: 20, label: '20 seconds' },
+  { seconds: 40, label: '40 seconds' },
+  { seconds: 90, label: '1.5 minutes' },
+  { seconds: 180, label: '3 minutes' }
+]
 export function createTray(actions: TrayActions): { tray: Tray; render: () => void } {
   // 'Template' 이미지 — 메뉴바 밝기·다크 모드에 맞춰 macOS가 색을 바꾼다 (scripts/make-icons.py)
   const image = nativeImage.createFromPath(trayIcon)
@@ -32,7 +41,7 @@ export function createTray(actions: TrayActions): { tray: Tray; render: () => vo
   }
 
   const render = (): void => {
-    const { muted, booPatterns } = actions.getSettings()
+    const { muted, booPatterns, chargeSeconds } = actions.getSettings()
     const booSounds: MenuItemConstructorOptions[] = BOO_PATTERNS.map((pattern) => ({
       label: pattern.label,
       type: 'checkbox',
@@ -59,6 +68,15 @@ export function createTray(actions: TrayActions): { tray: Tray; render: () => vo
       Menu.buildFromTemplate([
         { label: actions.isPaused() ? 'Resume' : 'Pause', click: withRender(actions.togglePause) },
         { label: muted ? 'Unmute' : 'Mute', click: withRender(actions.toggleMute) },
+        {
+          label: 'Mischief Every',
+          submenu: CHARGE_CHOICES.map(({ seconds, label }) => ({
+            label,
+            type: 'radio',
+            checked: chargeSeconds === seconds,
+            click: withRender(() => actions.setChargeSeconds(seconds))
+          }))
+        },
         {
           label: 'BOO Sounds',
           submenu: [

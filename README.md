@@ -4,7 +4,7 @@ A pixel ghost that haunts your desktop. It follows your cursor, charges a mischi
 and when the gauge is full a **local open-weight model** decides what prank to pull —
 a cute `BOO`, or exploding a button or input in its own demo window.
 
-> Hacktoberfest 2026 · DEV Open-Source AI Challenge Week 4 — _Ghost in the Machine_
+> Started for the Hacktoberfest 2026 _Ghost in the Machine_ theme — now a personal project.
 > Status: early scaffold. See [`docs/PRD.md`](docs/PRD.md) for the plan.
 
 ## Requirements

@@ -30,6 +30,7 @@ type Deps = {
 export type Mischief = {
   finishAction: () => void
   setOffline: (reason: 'offline' | 'model_missing') => void
+  setChargeMs: (ms: number) => void
   pause: () => void
   resume: () => void
   isPaused: () => boolean
@@ -188,6 +189,10 @@ export function createMischief({ decide, onState, onAction, config }: Deps): Mis
       if (from === 'THINKING' || from === 'AI_OFFLINE') think()
       else if (from === 'ACTING' || from === 'COOLDOWN') cooldown()
       else enter('CHARGING')
+    },
+    // 장난 주기 변경 — 지금 차고 있는 게이지에도 바로 적용된다 (차 있는 비율은 그대로)
+    setChargeMs(ms) {
+      cfg.chargeMs = ms
     },
     isPaused: () => state === 'PAUSED',
     dispose() {

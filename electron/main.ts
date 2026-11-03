@@ -3,12 +3,7 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createDemoWindow, createOverlayWindow } from './windows'
 import { createTray } from './tray'
 import { startCursorPolling, type CursorPolling } from './cursor'
-import {
-  createMischief,
-  DEFAULT_MISCHIEF_CONFIG,
-  type DecideResult,
-  type Mischief
-} from './mischief'
+import { createMischief, type DecideResult, type Mischief } from './mischief'
 import { createDecider } from './ai/decide'
 import { buildContext } from './ai/context'
 import { createOllamaEngine } from './ai/engines/ollama'
@@ -50,10 +45,10 @@ function showDemo(): void {
   demo.on('closed', () => (demo = null))
 }
 
-// 데모 촬영용: SPOOKY_CHARGE_SECONDS=8 npm run dev
-function chargeMsFromEnv(): number {
+// 장난 주기는 트레이 설정(chargeSeconds)을 따른다. 데모 촬영용으로 SPOOKY_CHARGE_SECONDS가 있으면 시작할 때만 그걸 쓴다
+function initialChargeMs(saved: number): number {
   const seconds = Number(process.env['SPOOKY_CHARGE_SECONDS'])
-  return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : DEFAULT_MISCHIEF_CONFIG.chargeMs
+  return (Number.isFinite(seconds) && seconds > 0 ? seconds : saved) * 1000
 }
 
 app.whenReady().then(() => {
@@ -152,7 +147,7 @@ app.whenReady().then(() => {
     decide: DEBUG_SCREEN_TARGET ? decideScreenFirst : decideWithModel,
     onState: (state) => sendToOverlay('ghost:state', state),
     onAction: (decision) => runAction(decision),
-    config: { chargeMs: chargeMsFromEnv() }
+    config: { chargeMs: initialChargeMs(settings.chargeSeconds) }
   })
   engine.health().then((health) => {
     console.info(`[spooky] engine ${engine.label}: ${health}`)
@@ -319,6 +314,10 @@ app.whenReady().then(() => {
     isPaused: () => mischief?.isPaused() ?? false,
     getSettings: () => settings,
     toggleMute: () => updateSettings({ ...settings, muted: !settings.muted }),
+    setChargeSeconds: (seconds: number) => {
+      updateSettings({ ...settings, chargeSeconds: seconds })
+      mischief?.setChargeMs(seconds * 1000)
+    },
     toggleBooPattern: (id: BooPatternId) => {
       const enabled = settings.booPatterns.includes(id)
       // 최소 하나는 남긴다

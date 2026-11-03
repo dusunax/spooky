@@ -6,7 +6,8 @@ export function useSettings(): GhostSettings {
   const [settings, setSettings] = useState<GhostSettings>({
     muted: false,
     booPatterns: [...BOO_PATTERN_IDS],
-    screenButtons: false
+    screenButtons: false,
+    chargeSeconds: 20
   })
   useEffect(() => window.ghost.on('ghost:settings', setSettings), [])
   return settings

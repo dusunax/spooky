@@ -9,13 +9,15 @@ import type { GhostSettings } from '../src/shared/ipc'
 const SettingsSchema = z.object({
   muted: z.boolean(),
   booPatterns: z.array(z.enum(BOO_PATTERN_IDS)).min(1),
-  screenButtons: z.boolean().default(false) // 이전 버전 설정 파일에는 없다
+  screenButtons: z.boolean().default(false), // 이전 버전 설정 파일에는 없다
+  chargeSeconds: z.number().int().min(3).max(600).default(20)
 })
 
 export const DEFAULT_SETTINGS: GhostSettings = {
   muted: false,
   booPatterns: [...BOO_PATTERN_IDS],
-  screenButtons: false
+  screenButtons: false,
+  chargeSeconds: 20
 }
 
 function settingsPath(): string {
