@@ -1,4 +1,5 @@
 import type { Decision, GhostState, MischiefState } from '../src/shared/ipc'
+import { SCREEN_TARGET_ID } from './screen-target'
 
 // 결정 엔진이 돌려주는 결과. 모델에 닿지 못하면 장난을 멈춘다 (PRD §6).
 export type DecideResult =
@@ -52,7 +53,7 @@ function describe(
       if (!decision) return 'Action'
       const { action, source } = decision
       const target =
-        action.type === 'EXPLODE' && action.targetId === 'screen-target'
+        action.type === 'EXPLODE' && action.targetId === SCREEN_TARGET_ID
           ? 'that one' // 외부 앱 요소 — 라벨은 화면에도 다시 쓰지 않는다
           : action.type === 'EXPLODE'
             ? action.targetId

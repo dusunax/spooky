@@ -29,6 +29,7 @@ If Ollama is not running or the model is missing, Spooky keeps following your cu
 ```bash
 npm install
 npm run dev
+npm test   # state machine, model-output validation, text trimming (Vitest)
 ```
 
 | Env                     | Default      | What it does                                                     |
