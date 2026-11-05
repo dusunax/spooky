@@ -2,6 +2,7 @@ import { Menu, Tray, app, nativeImage, type MenuItemConstructorOptions } from 'e
 // resources/ 안의 파일은 경로만 참조된다 — 옆의 trayTemplate@2x.png도 macOS가 함께 고른다
 import trayIcon from '../resources/trayTemplate.png?asset'
 import { BOO_PATTERNS, type BooPatternId } from '../src/shared/boo-patterns'
+import { EAR_STYLES, type EarStyle } from '../src/sprites/ears'
 import type { GhostSettings } from '../src/shared/ipc'
 
 type TrayActions = {
@@ -13,12 +14,13 @@ type TrayActions = {
   getSettings: () => GhostSettings
   toggleMute: () => void
   setChargeSeconds: (seconds: number) => void
+  setEars: (ears: EarStyle) => void
   toggleBooPattern: (id: BooPatternId) => void
   screenButtons: () => { available: boolean; enabled: boolean; trusted: boolean }
   toggleScreenButtons: () => void
 }
 
-// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · Mischief Every · BOO Sounds · Show Demo · Rebuild · Quit
+// 트레이가 설정 메뉴를 겸한다 (PRD §8.3): Pause · Mute · Mischief Every · Ears · BOO Sounds · Show Demo · Rebuild · Quit
 
 const CHARGE_CHOICES = [
   { seconds: 10, label: '10 seconds' },
@@ -41,7 +43,7 @@ export function createTray(actions: TrayActions): { tray: Tray; render: () => vo
   }
 
   const render = (): void => {
-    const { muted, booPatterns, chargeSeconds } = actions.getSettings()
+    const { muted, booPatterns, chargeSeconds, ears } = actions.getSettings()
     const booSounds: MenuItemConstructorOptions[] = BOO_PATTERNS.map((pattern) => ({
       label: pattern.label,
       type: 'checkbox',
@@ -75,6 +77,15 @@ export function createTray(actions: TrayActions): { tray: Tray; render: () => vo
             type: 'radio',
             checked: chargeSeconds === seconds,
             click: withRender(() => actions.setChargeSeconds(seconds))
+          }))
+        },
+        {
+          label: 'Ears',
+          submenu: EAR_STYLES.map(({ id, label }) => ({
+            label,
+            type: 'radio',
+            checked: ears === id,
+            click: withRender(() => actions.setEars(id))
           }))
         },
         {

@@ -177,6 +177,16 @@ body,
   }
 }
 
+/* 동물귀 — 귀만큼(4행 = 16px) 위로 키우고, 상태 패널도 그만큼 올린다 */
+.sprite--eared {
+  height: calc(100% + 16px);
+  margin-top: -16px;
+}
+
+.ghost:not([data-ears='none']) .hud {
+  bottom: calc(100% + 20px);
+}
+
 /* 상태별 움직임 (PRD §5.3) */
 /* 게이지 80% 이상: 장난기에 부들부들 */
 .ghost[data-face='mischief'] .sprite {

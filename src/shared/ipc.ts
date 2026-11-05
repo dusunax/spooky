@@ -1,6 +1,7 @@
 // IPC 계약 — docs/PRD.md §7.3. preload는 여기 있는 채널만 통과시킨다.
 
 import type { BooPatternId } from './boo-patterns'
+import type { EarStyle } from '../sprites/ears'
 
 // x·y는 오버레이(현재 디스플레이) 로컬 좌표, origin은 그 디스플레이의 전역 원점
 export type CursorUpdate = { x: number; y: number; speed: number; origin: { x: number; y: number } }
@@ -33,6 +34,7 @@ export type GhostSettings = {
   booPatterns: BooPatternId[] // 이 중에서 랜덤, 최소 1개
   screenButtons: boolean // 커서 근처 외부 앱 버튼에 반응 (PRD OQ-8, 기본 꺼짐)
   chargeSeconds: number // 게이지가 가득 차는 데 걸리는 시간 = 장난 주기
+  ears: EarStyle // 커스텀 동물귀
 }
 
 // 데모 창 버튼 — rect는 데모 창 콘텐츠 기준 CSS px

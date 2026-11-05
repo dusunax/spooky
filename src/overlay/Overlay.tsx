@@ -42,6 +42,7 @@ function Overlay(): React.JSX.Element {
         data-mischief={mischief}
         data-action={mischief === 'ACTING' ? decision?.action.type : undefined}
         data-face={expression.face}
+        data-ears={settings.ears}
       >
         <div className="shadow" />
         <div className="ghost-bob">
@@ -49,7 +50,7 @@ function Overlay(): React.JSX.Element {
             <span className="status">{statusText}</span>
             <MischiefGauge gauge={gauge} />
           </div>
-          <GhostSprite {...expression} />
+          <GhostSprite {...expression} ears={settings.ears} />
           {/* 모델이 만든 유령의 한마디 — 행동하는 동안만 */}
           {mischief === 'ACTING' && decision?.line && (
             <p className="bubble" role="status">

@@ -9,7 +9,7 @@ const FOLLOW = {
   stopThreshold: 8,
   personalSpace: 48, // 유령 중심이 이 반경 안으로 들어오면 밀어낸다 (시야 가림 방지)
   size: 64,
-  topReserve: 38, // 머리 위 상태 패널(텍스트·게이지) 공간
+  topReserve: 54, // 머리 위 상태 패널(텍스트·게이지) + 동물귀 공간
   approachLerp: 0.2, // 버튼으로 날아갈 때는 더 빠르게
   arriveThreshold: 20
 }

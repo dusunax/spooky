@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { z } from 'zod'
 import { BOO_PATTERN_IDS } from '../src/shared/boo-patterns'
+import { EAR_IDS } from '../src/sprites/ears'
 import type { GhostSettings } from '../src/shared/ipc'
 
 // 재실행해도 유지되는 사용자 설정 — ~/Library/Application Support/spooky/settings.json
@@ -10,14 +11,16 @@ const SettingsSchema = z.object({
   muted: z.boolean(),
   booPatterns: z.array(z.enum(BOO_PATTERN_IDS)).min(1),
   screenButtons: z.boolean().default(false), // 이전 버전 설정 파일에는 없다
-  chargeSeconds: z.number().int().min(3).max(600).default(20)
+  chargeSeconds: z.number().int().min(3).max(600).default(20),
+  ears: z.enum(EAR_IDS).default('none')
 })
 
 export const DEFAULT_SETTINGS: GhostSettings = {
   muted: false,
   booPatterns: [...BOO_PATTERN_IDS],
   screenButtons: false,
-  chargeSeconds: 20
+  chargeSeconds: 20,
+  ears: 'none'
 }
 
 function settingsPath(): string {

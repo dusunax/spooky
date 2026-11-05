@@ -91,6 +91,7 @@ export const PALETTE: Record<string, string> = {
   G: 'rgb(200 206 224 / 70%)',
   H: '#ffffff',
   P: '#ff6f91',
+  R: '#ffbed0', // 귀 안쪽 분홍 (src/sprites/ears.ts)
   Y: '#ffd84d',
   B: '#7cc4ff'
 }

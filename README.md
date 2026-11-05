@@ -41,6 +41,10 @@ Each decision is logged to the terminal as `[spooky] decision {...}` with the co
 
 Spooky lives in the menu bar (no Dock icon). Use the tray menu → **Quit Spooky** to exit.
 
+## Customize
+
+From the menu bar: **Mischief Every** (how often it pranks), **Ears** (none · bunny · cat · bear), **BOO Sounds**, **Mute**. Settings are saved.
+
 ## On-screen buttons (optional)
 
 Turn on **React to On-Screen Buttons** in the menu bar. With macOS Accessibility permission, Spooky looks within 120px of your cursor in other apps and picks the nearest button, input, text (label/span) or icon (svg) — its role, label and position, nothing else — and gives that to the model as one more target. It never reads what you typed into an input, and skips password fields entirely. If the model picks it, Spooky flies over and draws an explosion while reading its text aloud in a ghostly voice (macOS `say` + echo/reverb, skipped when muted) — and a scorch mark **on top of** it. The real element is never clicked, disabled or changed.

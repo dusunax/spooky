@@ -7,7 +7,8 @@ export function useSettings(): GhostSettings {
     muted: false,
     booPatterns: [...BOO_PATTERN_IDS],
     screenButtons: false,
-    chargeSeconds: 20
+    chargeSeconds: 20,
+    ears: 'none'
   })
   useEffect(() => window.ghost.on('ghost:settings', setSettings), [])
   return settings

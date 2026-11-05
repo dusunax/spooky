@@ -186,6 +186,7 @@ app.whenReady().then(() => {
     isPaused: () => mischief?.isPaused() ?? false,
     getSettings: () => settings,
     toggleMute: () => updateSettings({ ...settings, muted: !settings.muted }),
+    setEars: (ears) => updateSettings({ ...settings, ears }),
     setChargeSeconds: (seconds: number) => {
       updateSettings({ ...settings, chargeSeconds: seconds })
       mischief?.setChargeMs(seconds * 1000)
