@@ -5,68 +5,50 @@
 ![Spooky haunting its demo window](docs/demo.gif)
 
 A pixel ghost that haunts your desktop. It follows your cursor, charges a mischief gauge,
-and when the gauge is full a **local open-weight model** decides what prank to pull —
-a cute `BOO`, or exploding a button or input in its own demo window.
+and when the gauge is full a **local open-weight model** picks `BOO` or `EXPLODE`.
 
 > Started for the Hacktoberfest 2026 _Ghost in the Machine_ theme — now a personal project.
 >
-> Status: the core loop works — cursor following, the mischief gauge, model-picked BOO / EXPLODE, on-screen elements and ears.
->
-> Not built yet: the debug panel, a global shortcut and a `.dmg`. Details in [`docs/PRD.md`](docs/PRD.md).
+> Details in [`docs/PRD.md`](docs/PRD.md).
 
 ## Requirements
 
-- macOS
+- macOS, Xcode Command Line Tools (`swiftc`)
 - Node.js 20.19+
-- [Ollama](https://ollama.com) 0.5+ (structured outputs)
+- [Ollama](https://ollama.com) 0.5+
 
 ## Model setup
 
-Spooky's decisions come from [Qwen3 1.7B](https://ollama.com/library/qwen3) (Apache-2.0), running locally through Ollama.
+Spooky runs its model locally through Ollama. Without `SPOOKY_MODEL` it uses [Qwen3 1.7B](https://ollama.com/library/qwen3) (Apache-2.0).
 
 ```bash
 ollama pull qwen3:1.7b
 ollama serve   # skip if the Ollama app is already running
 ```
 
-If Ollama is not running or the model is missing, Spooky keeps following your cursor but stops pranking and shows `AI offline` / `Model missing`.
+To use another model, set `SPOOKY_MODEL` to the exact name `ollama list` shows (e.g. `qwen3:4b`, `llama3.2:latest`). More in [`docs/models.md`](docs/models.md) (Korean).
 
 ## Run
 
 ```bash
 npm install
 npm run dev
-npm test   # state machine, decision policy, model-output validation, text trimming, coordinates, expressions, ears (Vitest)
+npm test
 ```
 
-| Env                     | Default      | What it does                                                     |
-| ----------------------- | ------------ | ---------------------------------------------------------------- |
-| `SPOOKY_CHARGE_SECONDS` | `20`         | Seconds to fill the mischief gauge (use `5` for demo recordings) |
-| `SPOOKY_MODEL`          | `qwen3:1.7b` | Any Ollama model tag                                             |
-
-Debugging (logs, env vars, forcing on-screen targets): [`docs/debugging.md`](docs/debugging.md) (Korean).
-
-Each decision is logged to the terminal as `[spooky] decision {...}` with the context, the raw model output, latency, and whether it came from the model or a fallback.
-
-Spooky lives in the menu bar (no Dock icon). Use the tray menu → **Quit Spooky** to exit.
+Spooky lives in the menu bar (no Dock icon). Quit from the menu with **Quit Spooky**. Env vars and logs: [`docs/debugging.md`](docs/debugging.md) (Korean).
 
 ## Customize
 
-From the menu bar: **Mischief Every** (how often it pranks), **Ears** (none · bunny · cat · bear), **BOO Sounds**, **Mute**. Settings are saved.
+From the menu bar: **Mischief Every** (how often it acts), **Ears** (none · bunny · cat · bear), **BOO Sounds**, **Mute**. Settings are saved.
 
-## On-screen buttons (optional)
+## React to On-Screen Buttons (optional)
 
-Turn on **React to On-Screen Buttons** in the menu bar. With macOS Accessibility permission, Spooky looks within 120px of your cursor in other apps and picks the nearest button, input, text (label/span) or icon (svg) — its role, label and position, nothing else — and gives that to the model as one more target. It never reads what you typed into an input, and skips password fields entirely. If the model picks it, Spooky flies over and draws an explosion while reading its text aloud in a ghostly voice (macOS `say`, pitched up, skipped when muted) — and a scorch mark **on top of** it. The real element is never clicked, disabled or changed.
-
-- Off by default. Without the permission Spooky only haunts its demo window.
-- Labels go to the local model only; logs show `[on-screen element]` instead.
-- Rebuilding an ad-hoc signed app resets the Accessibility permission. Create a self-signed **Code Signing** certificate named `Spooky Dev` in Keychain Access once, and `npm run build:mac` signs with it so the permission survives rebuilds.
-- Building it needs Xcode Command Line Tools (`swiftc`). `npm run dev` compiles `native/ax-probe.swift` automatically.
+Turn on **React to On-Screen Buttons** and grant macOS Accessibility permission, and buttons, inputs and text near your cursor in other apps become targets too. If the model picks one, Spooky draws an explosion over it and reads its text aloud in a ghostly voice. The real element is never clicked or changed, and typed values and password fields are never read. Details in [PRD OQ-8](docs/PRD.md#oq-8-상세) (Korean). To keep the permission across rebuilds, see [`docs/debugging.md`](docs/debugging.md#손쉬운-사용-권한-유지).
 
 ## Safety
 
-Spooky only breaks buttons in its own demo window. Other apps are read-only (and only when you turn on on-screen buttons): it never clicks or changes them,
-never reads or writes your files, and only talks to Ollama on `127.0.0.1`.
+Only Spooky's own demo window is ever changed. Other apps are read-only, your files are never read or written, and the only network connection is to Ollama on `127.0.0.1`.
 
 ## License
 
