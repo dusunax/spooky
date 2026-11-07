@@ -137,7 +137,7 @@ flowchart LR
 | FR-07  | 상태 표시   | 머리 위 한 줄 텍스트 (`Following cursor` / `Mischief n%` / `Thinking...` / `Action: …` / `Cooldown` / `AI offline` / `Paused`)                                           |
 | FR-08  | 사용자 제어 | 사용자가 트레이 메뉴에서 고른다([FR-08](#fr-08-사용자-제어--트레이-메뉴-p0)). Dock 아이콘 숨김. 설정은 `userData/settings.json`에 저장                                   |
 | 비주얼 | 스프라이트  | 코드 픽셀 매트릭스(16×16 → 4배 확대 64px), 표정 6종([§5.3](#53-표정-매핑-구현-srcspritesexpressionts-2026-11-03)). 레퍼런스 시트 형태 기준. `image-rendering: pixelated` |
-| 문서   | 문서        | README(영어) + README.ko.md, [디버깅](debugging.md), MIT LICENSE. 데모 GIF는 아직 없음                                                                                   |
+| 문서   | 문서        | README(영어) + README.ko.md, [디버깅](debugging.md), MIT LICENSE, [데모 GIF](demo.gif)                                                                                   |
 
 ### 3.2 TARGET
 
@@ -680,7 +680,7 @@ interface DecisionEngine {
 - [x] Ollama에 닿지 못하면 크래시 없이 `AI offline`으로 동작한다 (상태 머신·결정 정책 테스트)
 - [x] 트레이에서 Pause·Mute·Quit이 동작한다
 - [x] 5분 연속 실행 중 크래시 없음
-- [ ] 데모 GIF
+- [x] 데모 GIF ([`docs/demo.gif`](demo.gif))
 - [ ] GitHub public 전환 (OQ-2, 사용자 확인 후)
 - ~~DEV 챌린지 제출 글 게시~~ — 제출하지 않음 (2026-11-03)
 

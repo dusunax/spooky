@@ -2,6 +2,8 @@
 
 **English** · [한국어](README.ko.md)
 
+![Spooky haunting its demo window](docs/demo.gif)
+
 A pixel ghost that haunts your desktop. It follows your cursor, charges a mischief gauge,
 and when the gauge is full a **local open-weight model** decides what prank to pull —
 a cute `BOO`, or exploding a button or input in its own demo window.

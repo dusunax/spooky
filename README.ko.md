@@ -2,6 +2,8 @@
 
 [English](README.md) · **한국어**
 
+![데모 창에서 장난치는 Spooky](docs/demo.gif)
+
 데스크톱 위를 떠다니는 픽셀 유령. 커서를 따라다니며 장난 게이지를 채우고, 게이지가 차면 **로컬 오픈 웨이트 모델**이 `BOO`를 할지, 데모 창의 버튼·입력칸을 폭파할지 고른다.
 
 > Hacktoberfest 2026 _Ghost in the Machine_ 테마로 시작한 개인 프로젝트.

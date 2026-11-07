@@ -13,7 +13,9 @@ Targets are buttons and an input in Spooky's own demo window. Exploded buttons s
 
 ## Demo
 
-<!-- TODO: 30–60s GIF — BOO, a demo-button EXPLODE, an on-screen EXPLODE with voice -->
+![Spooky haunting its demo window](demo.gif)
+
+The ghost follows the cursor, fills its gauge every 5 seconds (demo setting) and lets the model pick: BOO, or EXPLODE on a button or the note input. Broken buttons stay broken until Rebuild.
 
 ## Code
 
