@@ -1,5 +1,7 @@
 # Spooky
 
+**English** · [한국어](README.ko.md)
+
 A pixel ghost that haunts your desktop. It follows your cursor, charges a mischief gauge,
 and when the gauge is full a **local open-weight model** decides what prank to pull —
 a cute `BOO`, or exploding a button or input in its own demo window.
@@ -47,7 +49,7 @@ From the menu bar: **Mischief Every** (how often it pranks), **Ears** (none · b
 
 ## On-screen buttons (optional)
 
-Turn on **React to On-Screen Buttons** in the menu bar. With macOS Accessibility permission, Spooky looks within 120px of your cursor in other apps and picks the nearest button, input, text (label/span) or icon (svg) — its role, label and position, nothing else — and gives that to the model as one more target. It never reads what you typed into an input, and skips password fields entirely. If the model picks it, Spooky flies over and draws an explosion while reading its text aloud in a ghostly voice (macOS `say` + echo/reverb, skipped when muted) — and a scorch mark **on top of** it. The real element is never clicked, disabled or changed.
+Turn on **React to On-Screen Buttons** in the menu bar. With macOS Accessibility permission, Spooky looks within 120px of your cursor in other apps and picks the nearest button, input, text (label/span) or icon (svg) — its role, label and position, nothing else — and gives that to the model as one more target. It never reads what you typed into an input, and skips password fields entirely. If the model picks it, Spooky flies over and draws an explosion while reading its text aloud in a ghostly voice (macOS `say`, pitched up, skipped when muted) — and a scorch mark **on top of** it. The real element is never clicked, disabled or changed.
 
 - Off by default. Without the permission Spooky only haunts its demo window.
 - Labels go to the local model only; logs show `[on-screen element]` instead.
