@@ -7,7 +7,10 @@ and when the gauge is full a **local open-weight model** decides what prank to p
 a cute `BOO`, or exploding a button or input in its own demo window.
 
 > Started for the Hacktoberfest 2026 _Ghost in the Machine_ theme — now a personal project.
-> Status: early scaffold. See [`docs/PRD.md`](docs/PRD.md) for the plan.
+>
+> Status: the core loop works — cursor following, the mischief gauge, model-picked BOO / EXPLODE, on-screen elements and ears.
+>
+> Not built yet: the debug panel, a global shortcut and a `.dmg`. Details in [`docs/PRD.md`](docs/PRD.md).
 
 ## Requirements
 
@@ -31,13 +34,15 @@ If Ollama is not running or the model is missing, Spooky keeps following your cu
 ```bash
 npm install
 npm run dev
-npm test   # state machine, model-output validation, text trimming (Vitest)
+npm test   # state machine, decision policy, model-output validation, text trimming, coordinates, expressions, ears (Vitest)
 ```
 
 | Env                     | Default      | What it does                                                     |
 | ----------------------- | ------------ | ---------------------------------------------------------------- |
-| `SPOOKY_CHARGE_SECONDS` | `20`         | Seconds to fill the mischief gauge (use `8` for demo recordings) |
+| `SPOOKY_CHARGE_SECONDS` | `20`         | Seconds to fill the mischief gauge (use `5` for demo recordings) |
 | `SPOOKY_MODEL`          | `qwen3:1.7b` | Any Ollama model tag                                             |
+
+Debugging (logs, env vars, forcing on-screen targets): [`docs/debugging.md`](docs/debugging.md) (Korean).
 
 Each decision is logged to the terminal as `[spooky] decision {...}` with the context, the raw model output, latency, and whether it came from the model or a fallback.
 

@@ -5,7 +5,10 @@
 데스크톱 위를 떠다니는 픽셀 유령. 커서를 따라다니며 장난 게이지를 채우고, 게이지가 차면 **로컬 오픈 웨이트 모델**이 `BOO`를 할지, 데모 창의 버튼·입력칸을 폭파할지 고른다.
 
 > Hacktoberfest 2026 _Ghost in the Machine_ 테마로 시작한 개인 프로젝트.
-> 상태: 초기 단계. 계획은 [`docs/PRD.md`](docs/PRD.md).
+>
+> 상태: 커서 추적, 장난 게이지, 모델이 고르는 BOO·폭파, 화면 속 요소, 동물귀까지 동작한다.
+>
+> 디버그 패널, 전역 단축키, `.dmg`는 아직 없다. 자세한 내용은 [`docs/PRD.md`](docs/PRD.md).
 
 ## 필요 환경
 
@@ -22,20 +25,22 @@ ollama pull qwen3:1.7b
 ollama serve   # Ollama 앱이 이미 실행 중이면 생략
 ```
 
-Ollama가 꺼져 있거나 모델이 없으면 커서 추적만 하고 장난은 멈춘다. 머리 위에 `AI offline` / `Model missing`이 뜬다.
+Ollama가 꺼져 있거나 모델이 없으면 커서 추적만 하고 액션은 멈춘다. 머리 위에 `AI offline` / `Model missing`이 뜬다.
 
 ## 실행
 
 ```bash
 npm install
 npm run dev
-npm test   # 상태 머신, 모델 출력 검증, 글자 자르기 (Vitest)
+npm test   # 상태 머신, 결정 정책, 모델 출력 검증, 글자 자르기, 좌표, 표정, 귀 (Vitest)
 ```
 
 | 환경 변수               | 기본값       | 설명                                      |
 | ----------------------- | ------------ | ----------------------------------------- |
-| `SPOOKY_CHARGE_SECONDS` | `20`         | 게이지가 차는 시간(초). 데모 녹화에는 `8` |
+| `SPOOKY_CHARGE_SECONDS` | `20`         | 게이지가 차는 시간(초). 데모 녹화에는 `5` |
 | `SPOOKY_MODEL`          | `qwen3:1.7b` | Ollama 모델 태그                          |
+
+디버깅(로그, 환경 변수, 화면 요소 강제 모드)은 [`docs/debugging.md`](docs/debugging.md).
 
 판단마다 터미널에 `[spooky] decision {...}` 로그가 남는다. 입력 컨텍스트, 모델 원본 출력, 지연 시간, `model`/`fallback` 구분이 들어 있다.
 
