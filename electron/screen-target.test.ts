@@ -29,7 +29,7 @@ describe('spotFor', () => {
 })
 
 describe('redactRecord', () => {
-  const record = (targets: { id: string; label: string }[]): DecisionRecord => ({
+  const record = (targets: { id: string; label: string; distance: number }[]): DecisionRecord => ({
     context: {
       cursorSpeed: 'still',
       distanceToCursor: 60,
@@ -49,19 +49,19 @@ describe('redactRecord', () => {
   it('hides the on-screen label, line and raw output', () => {
     const redacted = redactRecord(
       record([
-        { id: 'btn-save', label: 'Save' },
-        { id: SCREEN_TARGET_ID, label: 'Bank balance (text in Safari)' }
+        { id: 'btn-save', label: 'Save', distance: 0 },
+        { id: SCREEN_TARGET_ID, label: 'Bank balance (text in Safari)', distance: 10 }
       ])
     )
     expect(JSON.stringify(redacted)).not.toContain('balance')
     expect(redacted.context.targets).toEqual([
-      { id: 'btn-save', label: 'Save' },
-      { id: SCREEN_TARGET_ID, label: '[on-screen element]' }
+      { id: 'btn-save', label: 'Save', distance: 0 },
+      { id: SCREEN_TARGET_ID, label: '[on-screen element]', distance: 10 }
     ])
   })
 
   it('leaves demo-only decisions untouched', () => {
-    const plain = record([{ id: 'btn-save', label: 'Save' }])
+    const plain = record([{ id: 'btn-save', label: 'Save', distance: 0 }])
     expect(redactRecord(plain)).toBe(plain)
   })
 })

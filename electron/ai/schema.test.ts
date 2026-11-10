@@ -7,8 +7,8 @@ const context: DecisionContext = {
   lastAction: null,
   secondsSinceLastAction: null,
   targets: [
-    { id: 'btn-save', label: 'Save' },
-    { id: 'screen-target', label: 'Invite (button in Chrome)' }
+    { id: 'btn-save', label: 'Save', distance: 0 },
+    { id: 'screen-target', label: 'Invite (button in Chrome)', distance: 20 }
   ],
   lineLanguage: 'English'
 }

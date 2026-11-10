@@ -12,6 +12,7 @@ Actions:
 
 Rules:
 - choice is "BOO" or "EXPLODE:<targetId>". intensity is used only for BOO.
+- targets are listed nearest first. distance is how far each one is from the cursor, in pixels.
 - Only choose EXPLODE if targets is not empty.
 - Prefer a different action than lastAction, but surprise is allowed.
 - If the cursor is fast, the user is busy: prefer a small BOO.

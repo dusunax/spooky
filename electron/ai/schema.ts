@@ -7,7 +7,7 @@ export type DecisionContext = {
   distanceToCursor: number
   lastAction: GhostAction['type'] | null
   secondsSinceLastAction: number | null
-  targets: { id: string; label: string }[]
+  targets: { id: string; label: string; distance: number }[] // distance = 커서에서 대상까지 px, 가까운 순
   lineLanguage: 'Korean' | 'English' // 대상 글씨에 한글이 있으면 한국어로 말하게 한다
 }
 
