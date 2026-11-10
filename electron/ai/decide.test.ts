@@ -8,7 +8,7 @@ const context: DecisionContext = {
   distanceToCursor: 60,
   lastAction: null,
   secondsSinceLastAction: null,
-  targets: [{ id: 'btn-save', label: 'Save' }],
+  targets: [{ id: 'btn-save', label: 'Save', distance: 0 }],
   lineLanguage: 'English'
 }
 

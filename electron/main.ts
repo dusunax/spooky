@@ -28,13 +28,15 @@ const demoTargets = createDemoTargets(
   () => demo
 )
 const screenButtons = createScreenButtons()
+// 커서의 전역 화면 좌표 (cursor.latest()는 오버레이 로컬 좌표 + 디스플레이 원점)
+function cursorGlobal(): { x: number; y: number } | null {
+  const point = cursor?.latest()
+  return point ? { x: point.x + point.origin.x, y: point.y + point.origin.y } : null
+}
 const screenTarget = createScreenTarget({
   screenButtons,
   isEnabled: () => settings.screenButtons,
-  cursorGlobal: () => {
-    const point = cursor?.latest()
-    return point ? { x: point.x + point.origin.x, y: point.y + point.origin.y } : null
-  }
+  cursorGlobal
 })
 // 디버깅: SPOOKY_DEBUG_SCREEN_TARGET=1 → 데모 창 제외, 화면 요소를 찾으면 항상 폭파
 const DEBUG_SCREEN_TARGET = process.env['SPOOKY_DEBUG_SCREEN_TARGET'] === '1'
@@ -92,7 +94,7 @@ app.whenReady().then(() => {
         ghost: ghostPosition,
         last,
         targets: [
-          ...(DEBUG_SCREEN_TARGET ? [] : demoTargets.eligible()),
+          ...(DEBUG_SCREEN_TARGET ? [] : demoTargets.eligible(cursorGlobal())),
           ...(await screenTarget.probe())
         ]
       }),

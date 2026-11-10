@@ -1,5 +1,6 @@
 import type { DecisionRecord } from './ai/decide'
 import type { ScreenButton, ScreenButtons } from './screen-buttons'
+import { distanceToRect } from './distance'
 import { spokenText } from './spoken-text'
 
 // 커서 근처의 외부 앱 요소를 판단 대상 하나로 만든다 (PRD OQ-8).
@@ -57,7 +58,7 @@ type Deps = {
 
 export type ScreenTarget = {
   // 반경 120px 안에서 커서에 가장 가까운 요소 하나를 대상 후보로 (설정이 꺼져 있거나 못 찾으면 빈 배열)
-  probe: () => Promise<{ id: string; label: string }[]>
+  probe: () => Promise<{ id: string; label: string; distance: number }[]>
   // 마지막으로 찾은 요소 — 폭파 때 위치와 읽을 글씨에 쓴다
   current: () => { button: ScreenButton; cursor: Point } | null
 }
@@ -87,7 +88,13 @@ export function createScreenTarget({ screenButtons, isEnabled, cursorGlobal }: D
       const button = { ...result.button, label: spokenText(result.button.label) }
       found = { button, cursor }
       const where = button.app ? `${button.kind} in ${button.app}` : button.kind
-      return [{ id: SCREEN_TARGET_ID, label: `${button.label} (${where})` }]
+      return [
+        {
+          id: SCREEN_TARGET_ID,
+          label: `${button.label} (${where})`,
+          distance: distanceToRect(cursor, button.frame)
+        }
+      ]
     },
     current: () => found
   }

@@ -16,14 +16,10 @@ function speedBucket(pxPerSecond: number): DecisionContext['cursorSpeed'] {
   return 'fast'
 }
 
-// 소형 모델은 목록 맨 앞을 고르는 경향이 있어(실측: 3/3 btn-save) 매번 순서를 섞는다
-function shuffled<T>(items: T[]): T[] {
-  const copy = [...items]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
+// 소형 모델은 목록 맨 앞을 고르는 경향이 있다(실측: 섞어도 목록 첫 번째를 75%). 섞는 대신 커서에서 가까운 순으로 넘겨
+// 그 습관이 "가장 가까운 것을 터뜨린다"는 행동이 되게 한다
+function nearestFirst<T extends { distance: number }>(items: T[]): T[] {
+  return [...items].sort((a, b) => a.distance - b.distance)
 }
 
 export function buildContext({ cursor, ghost, last, targets }: Inputs): DecisionContext {
@@ -34,7 +30,7 @@ export function buildContext({ cursor, ghost, last, targets }: Inputs): Decision
     distanceToCursor: distance,
     lastAction: last.action,
     secondsSinceLastAction: last.at === null ? null : Math.round((Date.now() - last.at) / 1000),
-    targets: shuffled(targets),
+    targets: nearestFirst(targets),
     lineLanguage: targets.some((t) => HANGUL.test(t.label)) ? 'Korean' : 'English'
   }
 }

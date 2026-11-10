@@ -5,7 +5,7 @@ const base = {
   cursor: { x: 100, y: 100, speed: 0, origin: { x: 0, y: 0 } },
   ghost: { x: 130, y: 140 },
   last: { action: null, at: null },
-  targets: [] as { id: string; label: string }[]
+  targets: [] as { id: string; label: string; distance: number }[]
 }
 
 describe('buildContext', () => {
@@ -33,23 +33,25 @@ describe('buildContext', () => {
     vi.useRealTimers()
   })
 
-  it('keeps every target, in some order', () => {
+  it('lists targets nearest to the cursor first', () => {
     const targets = [
-      { id: 'a', label: 'A' },
-      { id: 'b', label: 'B' },
-      { id: 'c', label: 'C' }
+      { id: 'far', label: 'A', distance: 300 },
+      { id: 'under', label: 'B', distance: 0 },
+      { id: 'near', label: 'C', distance: 40 }
     ]
     const ids = buildContext({ ...base, targets }).targets.map((t) => t.id)
-    expect([...ids].sort()).toEqual(['a', 'b', 'c'])
+    expect(ids).toEqual(['under', 'near', 'far'])
   })
 
   it('speaks Korean when any target label has Hangul', () => {
-    expect(buildContext({ ...base, targets: [{ id: 'a', label: 'Save' }] }).lineLanguage).toBe(
-      'English'
-    )
     expect(
-      buildContext({ ...base, targets: [{ id: 'a', label: '협업자 초대 (button in Chrome)' }] })
-        .lineLanguage
+      buildContext({ ...base, targets: [{ id: 'a', label: 'Save', distance: 0 }] }).lineLanguage
+    ).toBe('English')
+    expect(
+      buildContext({
+        ...base,
+        targets: [{ id: 'a', label: '협업자 초대 (button in Chrome)', distance: 0 }]
+      }).lineLanguage
     ).toBe('Korean')
   })
 })
