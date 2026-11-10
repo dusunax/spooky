@@ -16,7 +16,7 @@ function speedBucket(pxPerSecond: number): DecisionContext['cursorSpeed'] {
   return 'fast'
 }
 
-// 소형 모델은 목록 맨 앞을 고르는 경향이 있다(실측: 섞어도 63%). 섞는 대신 커서에서 가까운 순으로 넘겨
+// 소형 모델은 목록 맨 앞을 고르는 경향이 있다(실측: 섞어도 목록 첫 번째를 75%). 섞는 대신 커서에서 가까운 순으로 넘겨
 // 그 습관이 "가장 가까운 것을 터뜨린다"는 행동이 되게 한다
 function nearestFirst<T extends { distance: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.distance - b.distance)

@@ -29,7 +29,7 @@ Electron + React + TypeScript, MIT.
 - **The schema does the safety work.** The model answers `{ choice, intensity, line }`. `choice` is a JSON-schema `enum` built per call from `"BOO"` and `"EXPLODE:<id>"` for each live target, so the model cannot name a target that doesn't exist. Zod checks the answer again.
 - **Small-model fixes from measurement.**
   - With separate `type` and `targetId` fields, qwen3:1.7b picked BOO 0.5 in 12 of 12 runs. With one `choice` field it gave 16 of 16 valid answers, 9 BOO and 7 EXPLODE.
-  - It picks the first target in the list most of the time: 100% with a fixed order, still 63% when shuffled (100 runs each). So targets are sorted nearest to the cursor first, with each distance in pixels. Now the habit reads as "blow up the closest thing": 72% nearest, 20% second.
+  - It picks whatever comes first in the list, even when the list is shuffled. So targets are sorted nearest to the cursor first, with each distance in pixels. On the same 100 distance sets, it picked the nearest target 22% of the time before (about chance) and 63% after.
   - It copied example lines word for word, so the prompt has none.
 - **Honest records.** Every decision is logged with `source: 'model' | 'fallback'`. If Ollama is unreachable, the ghost stops pranking and shows `AI offline` instead of faking a choice.
 - **Reading other apps without touching them.** A small Swift helper uses the Accessibility API to read the role, label and frame of the nearest element within 120 px. It skips password fields and never reads typed values. Labels go only to the local model and are redacted in logs.
